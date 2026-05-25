@@ -29,6 +29,8 @@ app.post('/api/generate', aiController.generateContent);
 // Auth Routes
 app.post('/api/auth/register', authController.register);
 app.post('/api/auth/login', authController.login);
+app.get('/api/auth/config', authController.getConfig);
+app.post('/api/auth/google', authController.googleLogin);
 
 // Admin Routes - Departments
 app.get('/api/admin/departments', adminController.getDepartments);

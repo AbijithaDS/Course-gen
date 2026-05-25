@@ -96,5 +96,12 @@
     "name": "Electronics System Design & Manufacturing (ESDM)",
     "departmentId": "AI_DS",
     "semester": 6
+  },
+  {
+    "id": "SUB_ORGANIC",
+    "code": "23AC101",
+    "name": "Organic Farming",
+    "departmentId": "AI_DS",
+    "semester": 6
   }
 ]

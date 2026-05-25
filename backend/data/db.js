@@ -121,7 +121,8 @@ function initializeDatabase() {
     { id: 'SUB_UIUX', code: '23AD534', name: 'UI - UX Design', departmentId: 'AI_DS', semester: 6 },
     { id: 'SUB_IOT', code: '23CS412', name: 'Embedded System and IoT', departmentId: 'AI_DS', semester: 6 },
     { id: 'SUB_SAFETY', code: '23ME601', name: 'Industrial Safety', departmentId: 'AI_DS', semester: 6 },
-    { id: 'SUB_ESDM', code: '23EC602', name: 'Electronics System Design & Manufacturing (ESDM)', departmentId: 'AI_DS', semester: 6 }
+    { id: 'SUB_ESDM', code: '23EC602', name: 'Electronics System Design & Manufacturing (ESDM)', departmentId: 'AI_DS', semester: 6 },
+    { id: 'SUB_ORGANIC', code: '23AC101', name: 'Organic Farming', departmentId: 'AI_DS', semester: 6 }
   ];
 
   let subjectsUpdated = false;
