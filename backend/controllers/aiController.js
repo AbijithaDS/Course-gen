@@ -225,13 +225,13 @@ exports.generateContent = async (req, res) => {
       generatedText,
       model: usedModel
     });
-    
+
   } catch (error) {
     console.error('General server error in generateContent:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to generate content', 
-      details: error.message 
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate content',
+      details: error.message
     });
   }
 };
