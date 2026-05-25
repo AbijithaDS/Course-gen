@@ -95,7 +95,29 @@ exports.generateContent = async (req, res) => {
         Format the output cleanly in professional academic layout using Markdown.`;
         break;
       case 'qbank':
-        promptInstruction = 'Generate a comprehensive Question Bank with unit-wise categorization. Include 2-mark and 16-mark questions.';
+        promptInstruction = `Generate a comprehensive Question Bank covering all 5 units of the syllabus.
+        For each Unit (Unit I to Unit V), you must generate exactly:
+        - 5 questions of 2 marks (Short Answer)
+        - 4 questions of 16 marks (Long Answer)
+        
+        Strictly use the following format for each unit:
+        
+        ### Unit <Roman Numeral>: <Unit Title>
+        
+        **2-Mark Questions:**
+        1. <Question Text>
+        2. <Question Text>
+        3. <Question Text>
+        4. <Question Text>
+        5. <Question Text>
+        
+        **16-Mark Questions:**
+        1. <Question Text>
+        2. <Question Text>
+        3. <Question Text>
+        4. <Question Text>
+        
+        Do not include answers. Ensure the questions cover the respective unit syllabus thoroughly.`;
         break;
       case 'quiz':
         promptInstruction = 'Generate 15 multiple-choice questions (MCQs) for a quiz, along with the correct answers.';

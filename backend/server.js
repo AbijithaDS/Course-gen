@@ -79,6 +79,18 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Course File Generator Backend is running with dynamic databases' });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n[ERROR] Port ${PORT} is already in use!`);
+    console.error(`A zombie Node.js process is likely holding port ${PORT} in the background.`);
+    console.error(`To release the port, run: taskkill /F /IM node.exe`);
+    process.exit(1);
+  } else {
+    console.error(err);
+  }
+});
+

@@ -7,11 +7,11 @@ const TEMPLATES_DIR = path.join(__dirname, '..', '..', 'DOC generation format');
 const TEMPLATE_MAP = {
   cia1: 'Cia 1,2 - demo format.docx',
   cia2: 'Cia 1,2 - demo format.docx',
-  qbank: 'demo for question bank.docx',
+  qbank: 'Question Bank - format.docx',
   // fallback placeholders for other formats
-  quiz: 'demo for question bank.docx',
+  quiz: 'Question Bank - format.docx',
   hots: 'Cia 1,2 - demo format.docx',
-  assignment: 'demo for question bank.docx',
+  assignment: 'Question Bank - format.docx',
   beyond: 'Cia 1,2 - demo format.docx' 
 };
 
