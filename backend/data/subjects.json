@@ -1,0 +1,100 @@
+[
+  {
+    "id": "CS101",
+    "code": "CS301",
+    "name": "Data Structures and Algorithms",
+    "departmentId": "CSE",
+    "semester": 1
+  },
+  {
+    "id": "CS102",
+    "code": "CS302",
+    "name": "Database Management Systems",
+    "departmentId": "CSE",
+    "semester": 1
+  },
+  {
+    "id": "CS103",
+    "code": "CS303",
+    "name": "Operating Systems",
+    "departmentId": "CSE",
+    "semester": 2
+  },
+  {
+    "id": "CS104",
+    "code": "CS304",
+    "name": "Computer Networks",
+    "departmentId": "CSE",
+    "semester": 2
+  },
+  {
+    "id": "CS105",
+    "code": "CS305",
+    "name": "Software Engineering",
+    "departmentId": "CSE",
+    "semester": 3
+  },
+  {
+    "id": "CS106",
+    "code": "CS306",
+    "name": "Artificial Intelligence",
+    "departmentId": "CSE",
+    "semester": 3
+  },
+  {
+    "id": "IT101",
+    "code": "IT301",
+    "name": "Web Programming",
+    "departmentId": "IT",
+    "semester": 1
+  },
+  {
+    "id": "IT102",
+    "code": "IT302",
+    "name": "Cloud Computing Infrastructure",
+    "departmentId": "IT",
+    "semester": 1
+  },
+  {
+    "id": "AI101",
+    "code": "AD301",
+    "name": "Probability and Data Analytics",
+    "departmentId": "AI_DS",
+    "semester": 1
+  },
+  {
+    "id": "AI102",
+    "code": "AD302",
+    "name": "Machine Learning Fundamentals",
+    "departmentId": "AI_DS",
+    "semester": 1
+  },
+  {
+    "id": "SUB_UIUX",
+    "code": "23AD534",
+    "name": "UI - UX Design",
+    "departmentId": "AI_DS",
+    "semester": 6
+  },
+  {
+    "id": "SUB_IOT",
+    "code": "23CS412",
+    "name": "Embedded System and IoT",
+    "departmentId": "CSE",
+    "semester": 4
+  },
+  {
+    "id": "SUB_SAFETY",
+    "code": "23ME601",
+    "name": "Industrial Safety",
+    "departmentId": "MECH",
+    "semester": 6
+  },
+  {
+    "id": "SUB_ESDM",
+    "code": "23EC602",
+    "name": "Electronics System Design & Manufacturing (ESDM)",
+    "departmentId": "ECE",
+    "semester": 6
+  }
+]

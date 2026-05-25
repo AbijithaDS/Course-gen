@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { Settings, Sparkles, Download, Edit3, Save, RefreshCw, FileText } from 'lucide-react';
+import { Settings, Sparkles, Download, Edit3, Save, RefreshCw, FileText, ArrowLeft, LogOut } from 'lucide-react';
 
 const TABS = [
   { id: 'cia1', label: 'CIA 1' },
@@ -15,7 +15,7 @@ const TABS = [
 
 const CourseContent = () => {
   const navigate = useNavigate();
-  const { department, semester, subject } = useAppContext();
+  const { user, logoutUser, department, regulation, semester, subject } = useAppContext();
   
   const [activeTab, setActiveTab] = useState('cia1');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -29,6 +29,7 @@ const CourseContent = () => {
 
   const handleGenerate = async () => {
     setIsGenerating(true);
+    setContent('');
     try {
       const response = await fetch('http://localhost:5000/api/generate', {
         method: 'POST',
@@ -36,8 +37,10 @@ const CourseContent = () => {
         body: JSON.stringify({
           department: department.id,
           semester: semester,
-          subject: subject.name,
-          type: activeTab
+          subject: subject, // subject contains { code, name, ... }
+          type: activeTab,
+          regulation: regulation,
+          generatedBy: user?.username || 'faculty'
         })
       });
       
@@ -57,30 +60,185 @@ const CourseContent = () => {
     }
   };
 
-  const handleExport = (format) => {
-    alert(`Exporting ${activeTab} as ${format.toUpperCase()}...`);
-    // Will connect to export backend logic
+  // Convert Markdown to HTML for exports
+  const renderMarkdownToHtml = (md) => {
+    if (!md) return '';
+    // Quick simple markdown parser for bold, headers, list, etc.
+    let html = md
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+      .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+      .replace(/^- (.*$)/gim, '<li>$1</li>')
+      .replace(/\n/gim, '<br />');
+    
+    // Group list items into <ul>
+    html = html.replace(/(<li>.*?<\/li>)/gim, '<ul>$1</ul>');
+    html = html.replace(/<\/ul>\s*<ul>/gim, '');
+    return html;
+  };
+
+  // PDF Export using native print optimization window
+  const handleExportPDF = () => {
+    const printWindow = window.open('', '_blank');
+    const formattedHtml = renderMarkdownToHtml(content);
+    
+    const docTitle = `${subject.code}_${activeTab.toUpperCase()}_CourseFile`;
+    
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>${docTitle}</title>
+          <style>
+            body { 
+              font-family: 'Helvetica Neue', Arial, sans-serif; 
+              color: #1e293b; 
+              padding: 2.5rem; 
+              line-height: 1.6; 
+            }
+            .header-container { 
+              border-bottom: 2px solid #4f46e5; 
+              padding-bottom: 1rem; 
+              margin-bottom: 2rem; 
+            }
+            .header-title { 
+              font-size: 24px; 
+              font-weight: bold; 
+              margin: 0; 
+              color: #1e293b; 
+            }
+            .meta-grid { 
+              display: grid; 
+              grid-template-columns: 1fr 1fr; 
+              gap: 0.5rem; 
+              margin-top: 1rem; 
+              font-size: 14px; 
+              color: #64748b; 
+            }
+            h1, h2, h3 { color: #4f46e5; margin-top: 1.5rem; }
+            h1 { font-size: 22px; }
+            h2 { font-size: 18px; }
+            h3 { font-size: 16px; }
+            ul { margin-bottom: 1rem; padding-left: 1.5rem; }
+            li { margin-bottom: 0.25rem; }
+            @media print {
+              body { padding: 1.5cm; }
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header-container">
+            <h1 class="header-title">${TABS.find(t => t.id === activeTab)?.label} - Course Material</h1>
+            <div class="meta-grid">
+              <div><strong>Subject:</strong> ${subject.code} - ${subject.name}</div>
+              <div><strong>Department:</strong> ${department.name} (${department.id})</div>
+              <div><strong>Semester:</strong> Sem ${semester}</div>
+              <div><strong>Regulation:</strong> ${regulation}</div>
+            </div>
+          </div>
+          <div class="content-body">
+            ${formattedHtml}
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              // Optional: close window after print dialog is closed
+              // window.close();
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  // Word (DOC/DOCX) Export utilizing Microsoft Office compatible HTML blobs
+  const handleExportWord = () => {
+    const formattedHtml = renderMarkdownToHtml(content);
+    const docTitle = `${subject.code}_${activeTab.toUpperCase()}_CourseFile.doc`;
+
+    const fullDocContent = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+          <title>${subject.code} ${activeTab.toUpperCase()}</title>
+          <!--[if gte mso 9]>
+          <xml>
+            <w:WordDocument>
+              <w:View>Print</w:View>
+              <w:Zoom>100</w:Zoom>
+            </w:WordDocument>
+          </xml>
+          <![endif]-->
+          <style>
+            body { 
+              font-family: 'Arial', sans-serif; 
+              font-size: 11pt; 
+              line-height: 1.5; 
+            }
+            .header-table { 
+              width: 100%; 
+              border-bottom: 2px solid #4f46e5; 
+              margin-bottom: 20px; 
+              padding-bottom: 10px; 
+            }
+            h1, h2, h3 { color: #4f46e5; }
+          </style>
+        </head>
+        <body>
+          <table class="header-table">
+            <tr>
+              <td>
+                <h2>${TABS.find(t => t.id === activeTab)?.label} - ${subject.name} (${subject.code})</h2>
+                <p><strong>Department:</strong> ${department.name} | <strong>Semester:</strong> Sem ${semester} | <strong>Regulation:</strong> ${regulation}</p>
+              </td>
+            </tr>
+          </table>
+          <div>
+            ${formattedHtml}
+          </div>
+        </body>
+      </html>
+    `;
+
+    const blob = new Blob(['\ufeff' + fullDocContent], {
+      type: 'application/msword'
+    });
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = docTitle;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      
+      {/* Top Navigation */}
       <div className="top-nav" style={{ marginBottom: '1.5rem' }}>
         <div className="nav-left">
           <button className="btn btn-secondary" onClick={() => navigate(-1)}>
-            Back
+            <ArrowLeft size={16} /> Back
           </button>
           <div style={{ fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: 'var(--primary)' }}>{subject.code}</span>
             <span>-</span>
             <span>{subject.name}</span>
+            <span className="badge">{regulation}</span>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <button className="btn btn-secondary"><Settings size={18} /> Settings</button>
+          <button className="btn btn-secondary" onClick={logoutUser}>
+            <LogOut size={16} /> Sign Out
+          </button>
         </div>
       </div>
 
       <div style={{ display: 'flex', gap: '2rem', flex: 1 }}>
+        
         {/* Sidebar Tabs */}
         <div style={{ width: '250px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {TABS.map(tab => (
@@ -95,10 +253,11 @@ const CourseContent = () => {
           ))}
         </div>
 
-        {/* Main Content Area */}
+        {/* Main Content Workspace */}
         <div className="glass-card" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-light)' }}>
-            <h3 style={{ fontSize: '1.5rem' }}>{TABS.find(t => t.id === activeTab)?.label} Generator</h3>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{TABS.find(t => t.id === activeTab)?.label} Generator</h3>
             
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               {content && (
@@ -106,11 +265,11 @@ const CourseContent = () => {
                   <button className="btn btn-secondary" onClick={() => setIsEditing(!isEditing)}>
                     {isEditing ? <><Save size={18} /> Save</> : <><Edit3 size={18} /> Edit</>}
                   </button>
-                  <button className="btn btn-secondary" onClick={() => handleExport('pdf')}>
+                  <button className="btn btn-secondary" onClick={handleExportPDF}>
                     <Download size={18} /> PDF
                   </button>
-                  <button className="btn btn-secondary" onClick={() => handleExport('doc')}>
-                    <Download size={18} /> DOC
+                  <button className="btn btn-secondary" onClick={handleExportWord}>
+                    <Download size={18} /> Word
                   </button>
                 </>
               )}
@@ -124,23 +283,23 @@ const CourseContent = () => {
             {!content && !isGenerating ? (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
                 <Sparkles size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                <p>Click "Generate AI Content" to start creating materials.</p>
+                <p style={{ fontSize: '1.1rem' }}>Click "Generate AI Content" to start creating materials.</p>
               </div>
             ) : isGenerating ? (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
-                <div className="spinner" style={{ width: '40px', height: '40px', marginBottom: '1rem' }}></div>
-                <p>Gemini is analyzing the syllabus...</p>
+                <RefreshCw size={40} className="spinner" style={{ animation: 'spin 1.5s linear infinite', marginBottom: '1rem' }} />
+                <p style={{ fontWeight: 500 }}>Gemini AI is generating high-quality curriculum material...</p>
               </div>
             ) : (
               isEditing ? (
                 <textarea 
                   className="input-field"
-                  style={{ flex: 1, resize: 'none', border: 'none', padding: '1.5rem', fontFamily: 'monospace', fontSize: '0.9rem', lineHeight: '1.6' }}
+                  style={{ flex: 1, resize: 'none', border: 'none', padding: '1.5rem', fontFamily: 'monospace', fontSize: '0.95rem', lineHeight: '1.6' }}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                 />
               ) : (
-                <div style={{ flex: 1, padding: '1.5rem', overflowY: 'auto', whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                <div style={{ flex: 1, padding: '1.5rem', overflowY: 'auto', whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '1rem', color: '#1e293b' }}>
                   {content}
                 </div>
               )

@@ -1,0 +1,34 @@
+[
+  {
+    "id": "CSE",
+    "name": "Computer Science"
+  },
+  {
+    "id": "IT",
+    "name": "Information Technology"
+  },
+  {
+    "id": "ECE",
+    "name": "Electronics & Comm"
+  },
+  {
+    "id": "MECH",
+    "name": "Mechanical"
+  },
+  {
+    "id": "CIVIL",
+    "name": "Civil Engineering"
+  },
+  {
+    "id": "AI_DS",
+    "name": "AI & Data Science"
+  },
+  {
+    "id": "CYBER",
+    "name": "Cyber Security"
+  },
+  {
+    "id": "BME",
+    "name": "Biomedical"
+  }
+]

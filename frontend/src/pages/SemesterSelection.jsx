@@ -1,18 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { Calendar, Layers } from 'lucide-react';
 
 const SemesterSelection = () => {
   const navigate = useNavigate();
-  const { department, setYear, setSemester } = useAppContext();
+  const { department, regulation, setYear, setSemester } = useAppContext();
   
   const [selectedYear, setSelectedYear] = useState(null);
   const [selectedSemType, setSelectedSemType] = useState(null);
 
-  if (!department) {
-    // Redirect back if accessed directly
-    navigate('/departments');
+  useEffect(() => {
+    if (!department) {
+      navigate('/departments');
+    } else if (!regulation) {
+      navigate('/regulation');
+    }
+  }, [department, regulation]);
+
+  if (!department || !regulation) {
     return null;
   }
 
@@ -36,8 +42,12 @@ const SemesterSelection = () => {
           <button className="btn btn-secondary" onClick={() => navigate(-1)}>
             Back
           </button>
-          <div style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
-            <span style={{ color: 'var(--primary)' }}>{department.id}</span> &gt; Select Semester
+          <div style={{ fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span style={{ color: 'var(--primary)' }}>{department.id}</span>
+            <span>&gt;</span>
+            <span style={{ color: 'var(--primary)' }}>{regulation}</span>
+            <span>&gt;</span>
+            <span>Select Semester</span>
           </div>
         </div>
       </div>
