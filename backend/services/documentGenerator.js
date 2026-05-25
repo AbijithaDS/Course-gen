@@ -4,22 +4,231 @@ const templateService = require('./templateService');
 const subjectStaffService = require('./subjectStaffService');
 
 /**
- * Normalizes Markdown to clean plain text with spacing for DOCX rendering
+ * Normalizes Markdown to clean plain text for DOCX rendering
  */
 function formatMarkdownForDocx(md) {
   if (!md) return '';
-  
-  // Clean up any double bold tags or formatting symbols that can look messy in plain text
   return md
     .replace(/\*\*(.*?)\*\*/g, '$1') // Strip bold marks
-    .replace(/\*(.*?)\*/g, '$1') // Strip italics marks
-    .replace(/_([^_]+)_/g, '$1') // Strip underline marks
+    .replace(/\*(.*?)\*/g, '$1')     // Strip italics marks
+    .replace(/_([^_]+)_/g, '$1')     // Strip underline marks
     .trim();
 }
 
+// =====================================================================
+// QUESTION PARSER — Extracts individual questions from AI-generated text
+// =====================================================================
+
 /**
- * Compiles a premium HTML-wrapped Word document as a high-fidelity fallback
+ * Parses AI-generated CIA question paper markdown into individual question placeholders.
+ * Returns an object like { Q1: "...", Q2: "...", ..., Q10: "...", Q11a: "...", ..., Q13b: "..." }
  */
+function parseQuestions(content) {
+  const questions = {};
+  if (!content) return questions;
+
+  // Split into sections
+  const partAIdx = content.search(/Part\s*A/i);
+  const partBIdx = content.search(/Part\s*B/i);
+  const partCIdx = content.search(/Part\s*C/i);
+
+  let partAText = '';
+  let partBText = '';
+
+  if (partAIdx !== -1) {
+    if (partBIdx !== -1) {
+      partAText = content.substring(partAIdx, partBIdx);
+      if (partCIdx !== -1) {
+        partBText = content.substring(partBIdx, partCIdx) + '\n' + content.substring(partCIdx);
+      } else {
+        partBText = content.substring(partBIdx);
+      }
+    } else {
+      partAText = content.substring(partAIdx);
+    }
+  } else {
+    partAText = content;
+    partBText = content;
+  }
+
+  const cleanOption = (txt) => {
+    if (!txt) return '';
+    let cleaned = formatMarkdownForDocx(txt);
+    // Remove any trailing/internal "Part C" headings, marks declarations, or instructions
+    cleaned = cleaned.replace(/(?:^|\n)\s*#+\s*Part\s*[A-Z].*$/gim, '');
+    cleaned = cleaned.replace(/(?:^|\n)\s*\*?\(?Answer\s+(?:all|either|any).*$/gim, '');
+    cleaned = cleaned.replace(/(?:^|\n)\s*\*?\(?\d+\s*x\s*\d+\s*=\s*\d+\s*Marks.*$/gim, '');
+    cleaned = cleaned.replace(/(?:^|\n)\s*-+\s*$/gm, '');
+    return formatMarkdownForDocx(cleaned);
+  };
+
+  // --- Parse Part A ---
+  const partALines = partAText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  for (let i = 1; i <= 10; i++) {
+    const patterns = [
+      new RegExp(`^(?:\\*\\*|\\b)?Q?\\.?\\s*${i}\\s*[\\.\\)]\\s*\\*?\\*?\\s*(.+)`, 'i'),
+      new RegExp(`^\\**\\s*Q?\\.?\\s*${i}\\s*[\\.\\):]\\**\\s*(.+)`, 'i')
+    ];
+    for (const line of partALines) {
+      if (line.toLowerCase().includes('answer all') || line.toLowerCase().includes('marks)')) {
+        continue;
+      }
+      let matched = false;
+      for (const pat of patterns) {
+        const m = line.match(pat);
+        if (m) {
+          questions[`Q${i}`] = formatMarkdownForDocx(m[1]);
+          matched = true;
+          break;
+        }
+      }
+      if (matched) break;
+    }
+  }
+
+  // --- Parse Part B ---
+  const findQuestionSegment = (text, num) => {
+    const startRegex = new RegExp(`(?:^|\\n)\\s*\\**\\s*(?:Question|Q|\\*\\*)?\\s*${num}\\b`, 'i');
+    const startMatch = text.match(startRegex);
+    if (!startMatch) return '';
+
+    const startIdx = startMatch.index + startMatch[0].length;
+    const nextNum = num + 1;
+    const endRegex = new RegExp(`(?:^|\\n)\\s*\\**\\s*(?:Question|Q|\\*\\*)?\\s*${nextNum}\\b`, 'i');
+    const endMatch = text.match(endRegex);
+
+    if (endMatch) {
+      return text.substring(startMatch.index, endMatch.index);
+    } else {
+      return text.substring(startMatch.index);
+    }
+  };
+
+  const parseOption = (segment, letter) => {
+    const patterns = [
+      new RegExp(`(?:\\b|\\()\\s*(?:\\d+)?${letter}\\s*[\\.\\):]\\s*\\*?\\*?\\s*([\\s\\S]+?)(?=(?:\\b|\\()\\s*(?:\\d+)?[a-b]\\s*[\\.\\):]|\\bOR\\b|$)`, 'i')
+    ];
+
+    for (const pat of patterns) {
+      const m = segment.match(pat);
+      if (m) {
+        let txt = m[1].trim();
+        txt = txt.replace(/\s+\**OR\**\s*$/i, '');
+        return cleanOption(txt);
+      }
+    }
+    return '';
+  };
+
+  const partBKeys = [
+    { key: '11a', num: 11, letter: 'a' },
+    { key: '11b', num: 11, letter: 'b' },
+    { key: '12a', num: 12, letter: 'a' },
+    { key: '12b', num: 12, letter: 'b' },
+    { key: '13a', num: 13, letter: 'a' },
+    { key: '13b', num: 13, letter: 'b' }
+  ];
+
+  for (const item of partBKeys) {
+    const segment = findQuestionSegment(partBText, item.num);
+    if (segment) {
+      questions[`Q${item.key}`] = parseOption(segment, item.letter);
+    }
+  }
+
+  return questions;
+}
+
+// =====================================================================
+// METADATA RESOLVERS — Dynamic placeholders for the official template
+// =====================================================================
+
+/**
+ * Converts year/semester numbers to Roman numerals for the YEAR_SEM field
+ * Example: year=3, semester=6 → "III/VI"
+ */
+function toRoman(num) {
+  const n = parseInt(num, 10);
+  if (isNaN(n) || n <= 0) return String(num);
+  const romanMap = [
+    [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
+    [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
+    [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']
+  ];
+  let result = '';
+  let remaining = n;
+  for (const [value, symbol] of romanMap) {
+    while (remaining >= value) {
+      result += symbol;
+      remaining -= value;
+    }
+  }
+  return result;
+}
+
+/**
+ * Builds the YEAR_SEM string like "III/VI" from year and semester
+ */
+function resolveYearSem(year, semester) {
+  const y = parseInt(year, 10);
+  const s = parseInt(semester, 10);
+  if (isNaN(y) && isNaN(s)) return 'N/A';
+  const yearRoman = !isNaN(y) ? toRoman(y) : '';
+  const semRoman = !isNaN(s) ? toRoman(s) : '';
+  if (yearRoman && semRoman) return `${yearRoman}/${semRoman}`;
+  if (semRoman) return semRoman;
+  return yearRoman || 'N/A';
+}
+
+/**
+ * Computes academic year string like "2025-2026"
+ */
+function resolveAcademicYear() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-indexed
+  // Academic year starts in June/July
+  if (month >= 5) {
+    return `${year}-${year + 1}`;
+  }
+  return `${year - 1}-${year}`;
+}
+
+/**
+ * Maps department ID to display branch name
+ */
+function resolveBranch(departmentId, departmentName) {
+  const branchMap = {
+    'AI_DS': 'AI&DS',
+    'AIDS': 'AI&DS',
+    'CSE': 'CSE',
+    'IT': 'IT',
+    'ECE': 'ECE',
+    'EEE': 'EEE',
+    'MECH': 'MECH',
+    'CIVIL': 'CIVIL',
+    'BME': 'BME',
+  };
+  return branchMap[departmentId] || departmentName || departmentId || 'N/A';
+}
+
+/**
+ * Formats regulation display string (e.g., "R2023" → "R-2023")
+ */
+function resolveRegulation(regulation) {
+  if (!regulation) return 'N/A';
+  // If already has hyphen, return as-is
+  if (regulation.includes('-')) return regulation;
+  // Insert hyphen after 'R' prefix
+  const match = regulation.match(/^(R)(\d+)$/i);
+  if (match) return `${match[1]}-${match[2]}`;
+  return regulation;
+}
+
+// =====================================================================
+// HTML WORD FALLBACK — For non-CIA document types
+// =====================================================================
+
 function compileHtmlWordFallback(data) {
   const formattedContent = data.content
     .replace(/^### (.*$)/gim, '<h3 style="color:#4f46e5; margin-top:20px; font-size:14pt;">$1</h3>')
@@ -111,6 +320,10 @@ function compileHtmlWordFallback(data) {
   `;
 }
 
+// =====================================================================
+// CORE DOCUMENT GENERATOR
+// =====================================================================
+
 /**
  * Core generation service merging content, database values, and templates
  * @param {object} payload - The generation details
@@ -134,13 +347,11 @@ function generateDocument(payload) {
       throw new Error('Subject code and content are required for document compilation.');
     }
 
-    // 1. Resolve staff dynamically using our SubjectStaff service
+    // 1. Resolve staff dynamically
     const staffName = subjectStaffService.resolveStaff(subjectCode);
 
     // 2. Format names and parameters
     const displayDept = departmentName || (departmentId ? `${departmentId} Engineering` : 'Academic Department');
-    const displayYear = year ? `Year ${year}` : 'N/A';
-    const displaySem = semester ? `Sem ${semester}` : 'N/A';
     const displayDate = new Date().toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'long', 
@@ -157,47 +368,112 @@ function generateDocument(payload) {
       beyond: 'Beyond Syllabus Content'
     }[type] || type.toUpperCase();
 
-    // 3. Prepare replacement placeholders
-    const placeholders = {
-      SUBJECT_CODE: subjectCode,
-      SUBJECT_NAME: subjectName || 'Academic Subject',
-      STAFF_NAME: staffName,
-      DEPARTMENT: displayDept,
-      REGULATION: regulation || 'N/A',
-      YEAR: displayYear,
-      SEMESTER: displaySem,
-      GENERATION_DATE: displayDate,
-      DOCUMENT_TYPE: docTypeLabel,
-      CONTENT: formatMarkdownForDocx(content)
-    };
-
     const docName = `${subjectCode}_${type.toUpperCase()}_Formatted`;
 
-    // 4. Try template-based compiled DOCX rendering
-    const hasDocxTemplate = templateService.hasTemplate(type);
-    if (hasDocxTemplate) {
-      console.log(`Loading official DOCX template for type ${type}...`);
+    // 3. Check if this is a CIA type that uses the official template with question parsing
+    const isCIA = (type === 'cia1' || type === 'cia2');
+
+    if (isCIA) {
+      // CIA-specific: parse questions and fill the official template
+      console.log(`Generating CIA document with official template for type ${type}...`);
+
+      // Parse individual questions from AI output
+      const parsedQuestions = parseQuestions(content);
+      console.log(`Parsed questions: ${Object.keys(parsedQuestions).join(', ')}`);
+
+      // Build the full placeholder map for docxtemplater
+      const placeholders = {
+        // Metadata fields
+        YEAR_SEM: resolveYearSem(year, semester),
+        ACADEMIC_YEAR: resolveAcademicYear(),
+        BRANCH: resolveBranch(departmentId, departmentName),
+        DURATION: '100 minutes',
+        MAX_MARKS: '60',
+        REGULATION: resolveRegulation(regulation),
+        SUBJECT_CODE: subjectCode,
+        SUBJECT_NAME: subjectName || 'Academic Subject',
+
+        // Course outcomes (placeholder descriptions — can be customized per subject)
+        CO3_DESC: 'Understand and apply the fundamental concepts of the subject.',
+        CO4_DESC: 'Analyze and evaluate complex problems using subject knowledge.',
+        CO5_DESC: 'Design and create solutions applying higher-order thinking skills.',
+
+        // Part A questions (Q1 to Q10)
+        Q1: parsedQuestions.Q1 || '',
+        Q2: parsedQuestions.Q2 || '',
+        Q3: parsedQuestions.Q3 || '',
+        Q4: parsedQuestions.Q4 || '',
+        Q5: parsedQuestions.Q5 || '',
+        Q6: parsedQuestions.Q6 || '',
+        Q7: parsedQuestions.Q7 || '',
+        Q8: parsedQuestions.Q8 || '',
+        Q9: parsedQuestions.Q9 || '',
+        Q10: parsedQuestions.Q10 || '',
+
+        // Part B questions (Q11a to Q13b)
+        Q11a: parsedQuestions.Q11a || '',
+        Q11b: parsedQuestions.Q11b || '',
+        Q12a: parsedQuestions.Q12a || '',
+        Q12b: parsedQuestions.Q12b || '',
+        Q13a: parsedQuestions.Q13a || '',
+        Q13b: parsedQuestions.Q13b || '',
+      };
+
+      // Load the official template
       const templateBuffer = templateService.getTemplateBuffer(type);
-      
       if (templateBuffer) {
-        // Load zip archive
         const zip = new PizZip(templateBuffer);
-        
-        // Load docxtemplater engine with linebreak mapping enabled
         const doc = new Docxtemplater(zip, {
           paragraphLoop: true,
           linebreaks: true,
         });
 
-        // Perform tag replacement
         doc.render(placeholders);
 
-        // Get compiled node zip buffer
-        const outputBuffer = doc.getZip().generate({
-          type: 'nodebuffer'
+        const outputBuffer = doc.getZip().generate({ type: 'nodebuffer' });
+        console.log(`Successfully generated CIA document: ${docName}.docx`);
+        
+        return {
+          buffer: outputBuffer,
+          filename: `${docName}.docx`,
+          isFallback: false
+        };
+      }
+
+      // If template file not found, fall through to HTML fallback
+      console.warn('CIA template not found, falling back to HTML Word document...');
+    }
+
+    // 4. Non-CIA types or fallback: Try generic template-based rendering
+    const hasDocxTemplate = templateService.hasTemplate(type);
+    if (hasDocxTemplate && !isCIA) {
+      console.log(`Loading generic DOCX template for type ${type}...`);
+      const templateBuffer = templateService.getTemplateBuffer(type);
+      
+      if (templateBuffer) {
+        const placeholders = {
+          SUBJECT_CODE: subjectCode,
+          SUBJECT_NAME: subjectName || 'Academic Subject',
+          STAFF_NAME: staffName,
+          DEPARTMENT: displayDept,
+          REGULATION: regulation || 'N/A',
+          YEAR: year ? `Year ${year}` : 'N/A',
+          SEMESTER: semester ? `Sem ${semester}` : 'N/A',
+          GENERATION_DATE: displayDate,
+          DOCUMENT_TYPE: docTypeLabel,
+          CONTENT: formatMarkdownForDocx(content)
+        };
+
+        const zip = new PizZip(templateBuffer);
+        const doc = new Docxtemplater(zip, {
+          paragraphLoop: true,
+          linebreaks: true,
         });
 
-        console.log(`Successfully generated dynamic DOCX file: ${docName}.docx`);
+        doc.render(placeholders);
+
+        const outputBuffer = doc.getZip().generate({ type: 'nodebuffer' });
+        console.log(`Successfully generated DOCX: ${docName}.docx`);
         return {
           buffer: outputBuffer,
           filename: `${docName}.docx`,
@@ -206,14 +482,26 @@ function generateDocument(payload) {
       }
     }
 
-    // 5. Safe Graceful Fallback: Build beautiful HTML-wrapped Word document if DOCX template is missing
-    console.log(`DOCX Template missing/incompatible for type ${type}. Executing high-fidelity HTML-Word compilation...`);
-    const htmlFallback = compileHtmlWordFallback(placeholders);
+    // 5. HTML Word fallback
+    console.log(`Executing HTML-Word fallback for type ${type}...`);
+    const fallbackPlaceholders = {
+      SUBJECT_CODE: subjectCode,
+      SUBJECT_NAME: subjectName || 'Academic Subject',
+      STAFF_NAME: staffName,
+      DEPARTMENT: displayDept,
+      REGULATION: regulation || 'N/A',
+      YEAR: year ? `Year ${year}` : 'N/A',
+      SEMESTER: semester ? `Sem ${semester}` : 'N/A',
+      GENERATION_DATE: displayDate,
+      DOCUMENT_TYPE: docTypeLabel,
+      content: content
+    };
+    const htmlFallback = compileHtmlWordFallback(fallbackPlaceholders);
     const outputBuffer = Buffer.from(htmlFallback, 'utf8');
 
     return {
       buffer: outputBuffer,
-      filename: `${docName}.doc`, // standard compatible extension
+      filename: `${docName}.doc`,
       isFallback: true
     };
 
@@ -224,5 +512,6 @@ function generateDocument(payload) {
 }
 
 module.exports = {
-  generateDocument
+  generateDocument,
+  parseQuestions  // exported for testing
 };

@@ -31,33 +31,33 @@ exports.generateContent = async (req, res) => {
         Total Marks: 60 Marks
         Time Allowed: 2 Hours
         
-        Format the question paper strictly as follows:
+        Format the question paper strictly as follows (ONLY Part A and Part B, NO Part C):
         
-        ### Part A (Short Answer Questions)
-        * Marks: 10 questions x 2 marks = 20 marks
-        * All questions (Questions 1 to 10) are compulsory.
-        * Provide 10 brief, clear questions covering Units 1, 2, and the first half of Unit 3. Do not include answers, just the questions.
+        ### Part A (10 x 2 = 20 Marks)
+        ANSWER ALL THE QUESTIONS
+        * 10 questions (Questions 1 to 10), each worth 2 marks.
+        * Format each question as: "1. <question text>"
+        * Questions 1-2 should map to CO3, Questions 3-6 to CO4, Questions 7-10 to CO5.
+        * Provide brief, clear questions covering Units 1, 2, and the first half of Unit 3. Do not include answers.
         
-        ### Part B (Long Answer Questions)
-        * Marks: 2 questions x 16 marks = 32 marks
-        * Provide two questions (Question 11 and Question 12) with "Either/Or" options (choose either a or b).
-        * Structure of Question 11 (16 marks):
-          - Option (a): Single comprehensive question for 16 marks.
+        ### Part B (2 x 16 = 32 Marks & 1 x 8 = 8 Marks)
+        ANSWER ALL THE QUESTIONS
+        * This section has 3 questions (Q11, Q12, Q13), each with Either/Or options (a or b).
+        * Question 11 (16 marks, CO4, K4):
+          - 11a. Single comprehensive question for 16 marks.
           - OR
-          - Option (b): Single comprehensive question for 16 marks.
-        * Structure of Question 12 (16 marks):
-          - Option (a): Split into sub-questions (i) and (ii), worth 8 marks each (total 16 marks).
+          - 11b. Single comprehensive question for 16 marks.
+        * Question 12 (16 marks, CO5, K3):
+          - 12a. Single comprehensive question for 16 marks.
           - OR
-          - Option (b): Split into sub-questions (i) and (ii), worth 8 marks each (total 16 marks).
-        
-        ### Part C (Analytical/Application Question)
-        * Marks: 1 question x 8 marks = 8 marks
-        * Provide one question (Question 13) with "Either/Or" option (choose either a or b).
-          - Option (a): 8-mark analytical/application question.
+          - 12b. Single comprehensive question for 16 marks.
+        * Question 13 (8 marks, CO3, K3):
+          - 13a. Analytical/application question for 8 marks.
           - OR
-          - Option (b): 8-mark analytical/application question.
+          - 13b. Analytical/application question for 8 marks.
           
-        Ensure that the total marks compile exactly to 60 (Part A: 20 + Part B: 32 + Part C: 8). Format the output cleanly in professional academic layout using Markdown.`;
+        IMPORTANT: Total marks must be exactly 60 (Part A: 20 + Part B: 32 + 8 = 40). There is NO Part C. Question 13 is inside Part B.
+        Format the output cleanly in professional academic layout using Markdown.`;
         break;
       case 'cia2':
         promptInstruction = `Generate a Continuous Internal Assessment 2 (CIA 2) question paper.
@@ -66,33 +66,33 @@ exports.generateContent = async (req, res) => {
         Total Marks: 60 Marks
         Time Allowed: 2 Hours
         
-        Format the question paper strictly as follows:
+        Format the question paper strictly as follows (ONLY Part A and Part B, NO Part C):
         
-        ### Part A (Short Answer Questions)
-        * Marks: 10 questions x 2 marks = 20 marks
-        * All questions (Questions 1 to 10) are compulsory.
-        * Provide 10 brief, clear questions covering the second half of Unit 3, Unit 4, and Unit 5. Do not include answers, just the questions.
+        ### Part A (10 x 2 = 20 Marks)
+        ANSWER ALL THE QUESTIONS
+        * 10 questions (Questions 1 to 10), each worth 2 marks.
+        * Format each question as: "1. <question text>"
+        * Questions 1-2 should map to CO3, Questions 3-6 to CO4, Questions 7-10 to CO5.
+        * Provide brief, clear questions covering the second half of Unit 3, Unit 4, and Unit 5. Do not include answers.
         
-        ### Part B (Long Answer Questions)
-        * Marks: 2 questions x 16 marks = 32 marks
-        * Provide two questions (Question 11 and Question 12) with "Either/Or" options (choose either a or b).
-        * Structure of Question 11 (16 marks):
-          - Option (a): Single comprehensive question for 16 marks.
+        ### Part B (2 x 16 = 32 Marks & 1 x 8 = 8 Marks)
+        ANSWER ALL THE QUESTIONS
+        * This section has 3 questions (Q11, Q12, Q13), each with Either/Or options (a or b).
+        * Question 11 (16 marks, CO4, K4):
+          - 11a. Single comprehensive question for 16 marks.
           - OR
-          - Option (b): Single comprehensive question for 16 marks.
-        * Structure of Question 12 (16 marks):
-          - Option (a): Split into sub-questions (i) and (ii), worth 8 marks each (total 16 marks).
+          - 11b. Single comprehensive question for 16 marks.
+        * Question 12 (16 marks, CO5, K3):
+          - 12a. Single comprehensive question for 16 marks.
           - OR
-          - Option (b): Split into sub-questions (i) and (ii), worth 8 marks each (total 16 marks).
-        
-        ### Part C (Analytical/Application Question)
-        * Marks: 1 question x 8 marks = 8 marks
-        * Provide one question (Question 13) with "Either/Or" option (choose either a or b).
-          - Option (a): 8-mark analytical/application question.
+          - 12b. Single comprehensive question for 16 marks.
+        * Question 13 (8 marks, CO3, K3):
+          - 13a. Analytical/application question for 8 marks.
           - OR
-          - Option (b): 8-mark analytical/application question.
+          - 13b. Analytical/application question for 8 marks.
           
-        Ensure that the total marks compile exactly to 60 (Part A: 20 + Part B: 32 + Part C: 8). Format the output cleanly in professional academic layout using Markdown.`;
+        IMPORTANT: Total marks must be exactly 60 (Part A: 20 + Part B: 32 + 8 = 40). There is NO Part C. Question 13 is inside Part B.
+        Format the output cleanly in professional academic layout using Markdown.`;
         break;
       case 'qbank':
         promptInstruction = 'Generate a comprehensive Question Bank with unit-wise categorization. Include 2-mark and 16-mark questions.';
