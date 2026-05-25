@@ -80,21 +80,21 @@
     "id": "SUB_IOT",
     "code": "23CS412",
     "name": "Embedded System and IoT",
-    "departmentId": "CSE",
-    "semester": 4
+    "departmentId": "AI_DS",
+    "semester": 6
   },
   {
     "id": "SUB_SAFETY",
     "code": "23ME601",
     "name": "Industrial Safety",
-    "departmentId": "MECH",
+    "departmentId": "AI_DS",
     "semester": 6
   },
   {
     "id": "SUB_ESDM",
     "code": "23EC602",
     "name": "Electronics System Design & Manufacturing (ESDM)",
-    "departmentId": "ECE",
+    "departmentId": "AI_DS",
     "semester": 6
   }
 ]

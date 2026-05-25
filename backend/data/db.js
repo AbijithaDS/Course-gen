@@ -119,15 +119,26 @@ function initializeDatabase() {
   // Ensure specific syllabus subjects from the PDF folder are present on system launch
   const requiredSyllabusSubjects = [
     { id: 'SUB_UIUX', code: '23AD534', name: 'UI - UX Design', departmentId: 'AI_DS', semester: 6 },
-    { id: 'SUB_IOT', code: '23CS412', name: 'Embedded System and IoT', departmentId: 'CSE', semester: 4 },
-    { id: 'SUB_SAFETY', code: '23ME601', name: 'Industrial Safety', departmentId: 'MECH', semester: 6 },
-    { id: 'SUB_ESDM', code: '23EC602', name: 'Electronics System Design & Manufacturing (ESDM)', departmentId: 'ECE', semester: 6 }
+    { id: 'SUB_IOT', code: '23CS412', name: 'Embedded System and IoT', departmentId: 'AI_DS', semester: 6 },
+    { id: 'SUB_SAFETY', code: '23ME601', name: 'Industrial Safety', departmentId: 'AI_DS', semester: 6 },
+    { id: 'SUB_ESDM', code: '23EC602', name: 'Electronics System Design & Manufacturing (ESDM)', departmentId: 'AI_DS', semester: 6 }
   ];
 
   let subjectsUpdated = false;
   const currentSubjects = readData('subjects');
+  
   requiredSyllabusSubjects.forEach(reqSubj => {
-    if (!currentSubjects.some(s => s.code === reqSubj.code)) {
+    const existingIndex = currentSubjects.findIndex(s => s.code === reqSubj.code);
+    if (existingIndex !== -1) {
+      // Overwrite/Force to AI_DS Semester 6 as these are AIDS Year 3 Even Sem subjects
+      const existing = currentSubjects[existingIndex];
+      if (existing.departmentId !== reqSubj.departmentId || existing.semester !== reqSubj.semester) {
+        existing.departmentId = reqSubj.departmentId;
+        existing.semester = reqSubj.semester;
+        subjectsUpdated = true;
+      }
+    } else {
+      // Add if missing
       currentSubjects.push(reqSubj);
       subjectsUpdated = true;
     }
@@ -135,7 +146,7 @@ function initializeDatabase() {
 
   if (subjectsUpdated) {
     writeData('subjects', currentSubjects);
-    console.log('Injected perspective year/even semester subjects matching the syllabus PDFs');
+    console.log('Forced perspective AIDS Year 3 / Semester 6 subjects matching the syllabus PDFs');
   }
 
   // 5. Initialize Empty Generated Content log if missing
