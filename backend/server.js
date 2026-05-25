@@ -15,10 +15,11 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Import Controllers
+// Import Controllers and Services
 const aiController = require('./controllers/aiController');
 const authController = require('./controllers/authController');
 const adminController = require('./controllers/adminController');
+const documentGenerator = require('./services/documentGenerator');
 
 // --- Routes ---
 
@@ -46,6 +47,30 @@ app.post('/api/admin/regulations', adminController.addRegulation);
 // Admin Routes - Audits & Analytics
 app.get('/api/admin/generations', adminController.getGenerations);
 app.get('/api/admin/stats', adminController.getStats);
+
+// Template Document Export Route
+app.post('/api/export', (req, res) => {
+  try {
+    const payload = req.body;
+    console.log(`Received export request for ${payload.subjectCode} (${payload.type})`);
+    
+    const result = documentGenerator.generateDocument(payload);
+    
+    // Set appropriate headers based on whether it is fallback HTML-Word (.doc) or real DOCX (.docx)
+    const contentType = result.isFallback 
+      ? 'application/msword' 
+      : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
+    res.setHeader('Content-Length', result.buffer.length);
+    
+    res.status(200).send(result.buffer);
+  } catch (error) {
+    console.error('API Export error:', error);
+    res.status(500).json({ error: 'Failed to compile formatted document', details: error.message });
+  }
+});
 
 // Basic health check
 app.get('/api/health', (req, res) => {

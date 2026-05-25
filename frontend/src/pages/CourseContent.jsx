@@ -154,64 +154,56 @@ const CourseContent = () => {
     printWindow.document.close();
   };
 
-  // Word (DOC/DOCX) Export utilizing Microsoft Office compatible HTML blobs
-  const handleExportWord = () => {
-    const formattedHtml = renderMarkdownToHtml(content);
-    const docTitle = `${subject.code}_${activeTab.toUpperCase()}_CourseFile.doc`;
+  // Word (DOC/DOCX) Export utilizing official institution templates from backend
+  const handleExportWord = async () => {
+    try {
+      console.log('Requesting template-driven Word document from backend...');
+      const response = await fetch('http://localhost:5000/api/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subjectCode: subject.code,
+          subjectName: subject.name,
+          departmentId: department.id,
+          departmentName: department.name,
+          semester: semester,
+          regulation: regulation,
+          year: year,
+          type: activeTab,
+          content: content
+        })
+      });
 
-    const fullDocContent = `
-      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head>
-          <title>${subject.code} ${activeTab.toUpperCase()}</title>
-          <!--[if gte mso 9]>
-          <xml>
-            <w:WordDocument>
-              <w:View>Print</w:View>
-              <w:Zoom>100</w:Zoom>
-            </w:WordDocument>
-          </xml>
-          <![endif]-->
-          <style>
-            body { 
-              font-family: 'Arial', sans-serif; 
-              font-size: 11pt; 
-              line-height: 1.5; 
-            }
-            .header-table { 
-              width: 100%; 
-              border-bottom: 2px solid #4f46e5; 
-              margin-bottom: 20px; 
-              padding-bottom: 10px; 
-            }
-            h1, h2, h3 { color: #4f46e5; }
-          </style>
-        </head>
-        <body>
-          <table class="header-table">
-            <tr>
-              <td>
-                <h2>${TABS.find(t => t.id === activeTab)?.label} - ${subject.name} (${subject.code})</h2>
-                <p><strong>Department:</strong> ${department.name} | <strong>Semester:</strong> Sem ${semester} | <strong>Regulation:</strong> ${regulation}</p>
-              </td>
-            </tr>
-          </table>
-          <div>
-            ${formattedHtml}
-          </div>
-        </body>
-      </html>
-    `;
+      if (!response.ok) {
+        throw new Error('Failed to generate template-driven Word document.');
+      }
 
-    const blob = new Blob(['\ufeff' + fullDocContent], {
-      type: 'application/msword'
-    });
+      // Fetch as binary blob
+      const blob = await response.blob();
+      
+      // Determine file extension from response headers or default to docx
+      const disposition = response.headers.get('Content-Disposition');
+      let filename = `${subject.code}_${activeTab.toUpperCase()}_Formatted.docx`;
+      if (disposition && disposition.includes('filename=')) {
+        const matches = disposition.match(/filename="?([^"]+)"?/);
+        if (matches && matches[1]) {
+          filename = matches[1];
+        }
+      }
 
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = docTitle;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      // Trigger standard browser download of binary file
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      console.log('Template-driven Word document downloaded successfully:', filename);
+
+    } catch (error) {
+      console.error('Error exporting template-driven Word document:', error);
+      alert('Failed to download official formatted document. Is the backend running?');
+    }
   };
 
   return (
