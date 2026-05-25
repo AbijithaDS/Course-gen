@@ -15,7 +15,7 @@ const TABS = [
 
 const CourseContent = () => {
   const navigate = useNavigate();
-  const { user, logoutUser, department, regulation, semester, subject } = useAppContext();
+  const { user, logoutUser, department, regulation, year, semester, subject } = useAppContext();
   
   const [activeTab, setActiveTab] = useState('cia1');
   const [isGenerating, setIsGenerating] = useState(false);
