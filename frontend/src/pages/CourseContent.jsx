@@ -60,6 +60,21 @@ const CourseContent = () => {
     }
   };
 
+  // Strips markdown formatting emphasis characters (*, _, **) from a string.
+  const stripMarkdownFormatting = (text) => {
+    if (!text) return '';
+    return text
+      .replace(/\*\*\*(.*?)\*\*\*/g, '$1')
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/__(.*?)__/g, '$1')
+      .replace(/_(.*?)_/g, '$1')
+      .replace(/^[\*_\s]+|[\*_\s]+$/g, (match) => {
+        return match.replace(/[\*_]/g, '');
+      })
+      .trim();
+  };
+
   // Cleans CO and K references from the text to prevent duplication in dedicated columns.
   const cleanAllTextOfCOK = (text) => {
     if (!text) return '';
@@ -127,10 +142,7 @@ const CourseContent = () => {
 
     const clean = (txt) => {
       if (!txt) return '';
-      let cleaned = txt
-        .replace(/\*\*(.*?)\*\*/g, '$1') // Strip bold
-        .replace(/\*(.*?)\*/g, '$1')     // Strip italics
-        .replace(/_([^_]+)_/g, '$1')     // Strip underline
+      let cleaned = stripMarkdownFormatting(txt)
         .replace(/^\s*[\-\*\+]\s+/, '') // Strip list bullets
         .trim();
       return cleanAllTextOfCOK(cleaned);

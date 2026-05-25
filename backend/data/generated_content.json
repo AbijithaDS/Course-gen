@@ -110,5 +110,19 @@
     "timestamp": "2026-05-25T13:38:22.009Z",
     "wordCount": 455,
     "model": "gemini-2.5-flash"
+  },
+  {
+    "id": "GEN1779717467666",
+    "subjectCode": "23EC602",
+    "subjectName": "Electronics System Design & Manufacturing (ESDM)",
+    "departmentId": "AI_DS",
+    "semester": 6,
+    "regulation": "R2023",
+    "type": "cia1",
+    "content": "**23EC602 - Electronics System Design & Manufacturing (ESDM)**\n\n**CIA 1 Question Paper**\n\n**Semester: VI (R2023)**\n\n**Time: 2 Hours**\n**Max. Marks: 60**\n\n---\n\n### Part A (10 x 2 = 20 Marks)\n**ANSWER ALL THE QUESTIONS**\n\n1.  Define Design for Assembly (DFA) and state two key benefits of implementing it in the electronics manufacturing process.\n2.  Differentiate between Electrostatic Discharge (ESD) and Electromagnetic Interference (EMI) in the context of electronics system design.\n3.  Explain why proper ground plane implementation is crucial for signal integrity in a multi-layer Printed Circuit Board (PCB).\n4.  Outline two significant challenges encountered during the routing phase of a complex PCB design.\n5.  Briefly describe the purpose of a solder mask and its importance in PCB manufacturing.\n6.  Identify two factors that influence the choice of PCB substrate material for a high-frequency application.\n7.  Discuss the primary objective of the Waste Electrical and Electronic Equipment (WEEE) directive.\n8.  Compare the advantages of Ball Grid Array (BGA) packaging over Quad Flat Package (QFP) in terms of I/O density and thermal performance.\n9.  What are the main considerations for thermal management when designing a compact electronic device with high power dissipation?\n10. Define Wafer-Level Chip Scale Package (WLCSP) and mention one of its key advantages.\n\n### Part B (2 x 16 = 32 Marks & 1 x 8 = 8 Marks)\n**ANSWER ALL THE QUESTIONS**\n\n**11.**\na.  Illustrate the complete flow of the PCB manufacturing process, from raw material to a finished, functional board. Explain the purpose and importance of at least four critical steps such as etching, drilling, plating, and solder mask application.\n**OR**\nb.  Analyze the critical factors affecting signal integrity in high-speed PCB designs. Discuss various techniques and design considerations, including impedance control, routing strategies, and power delivery network (PDN) design, to mitigate signal integrity issues.\n\n**12.**\na.  Discuss various types of advanced IC packaging technologies such as System-in-Package (SiP), System-on-Chip (SoC), and 3D ICs. Compare their architectural differences, advantages, and typical application areas, highlighting the scenarios where each technology is most suitable.\n**OR**\nb.  Evaluate the significance of environmental regulations and standards, such as RoHS and IPC standards, in the electronics industry. Describe how these regulations influence material selection, manufacturing processes, and the overall product life cycle for electronic systems.\n\n**13.**\na.  A design team is developing a new automotive electronic control unit (ECU). Explain how incorporating Design for Reliability (DFR) principles from the initial design phase can lead to significant improvements in product lifespan and reduced warranty costs. Provide specific examples of DFR techniques applicable to this scenario.\n**OR**\nb.  Describe the sequential steps involved in the Surface Mount Technology (SMT) assembly process for a typical PCB. Elaborate on the functions of stencil printing, pick-and-place machines, and reflow soldering in achieving accurate and reliable component attachment.",
+    "generatedBy": "faculty",
+    "timestamp": "2026-05-25T13:57:47.666Z",
+    "wordCount": 462,
+    "model": "gemini-2.5-flash"
   }
 ]

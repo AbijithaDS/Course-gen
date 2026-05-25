@@ -26,17 +26,29 @@ function cleanAllTextOfCOK(text) {
 }
 
 /**
+ * Strips markdown formatting emphasis characters (*, _, **) from a string.
+ */
+function stripMarkdownFormatting(text) {
+  if (!text) return '';
+  return text
+    .replace(/\*\*\*(.*?)\*\*\*/g, '$1')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1')
+    .replace(/_(.*?)_/g, '$1')
+    .replace(/^[\*_\s]+|[\*_\s]+$/g, (match) => {
+      return match.replace(/[\*_]/g, '');
+    })
+    .trim();
+}
+
+/**
  * Normalizes Markdown to clean plain text for DOCX rendering and strips CO/K mappings.
  */
 function formatMarkdownForDocx(md) {
   if (!md) return '';
-  let text = md
-    .replace(/\*\*(.*?)\*\*/g, '$1') // Strip bold marks
-    .replace(/\*(.*?)\*/g, '$1')     // Strip italics marks
-    .replace(/_([^_]+)_/g, '$1')     // Strip underline marks
-    .trim();
-    
-  return cleanAllTextOfCOK(text);
+  let cleanMd = stripMarkdownFormatting(md);
+  return cleanAllTextOfCOK(cleanMd);
 }
 
 // =====================================================================
