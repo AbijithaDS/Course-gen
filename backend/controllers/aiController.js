@@ -123,6 +123,13 @@ exports.generateContent = async (req, res) => {
     
     Task: ${promptInstruction}
     
+    STRICT INSTRUCTIONS:
+    - Generate only question text.
+    - Do NOT append CO mappings.
+    - Do NOT append Bloom's taxonomy levels.
+    - Do NOT append (COx) or (Kx) inside question statements.
+    - CO and K values will be handled separately by the application.
+    
     Format the output cleanly in Markdown format. Do not use generic introductions, just provide the content directly.
     `;
 

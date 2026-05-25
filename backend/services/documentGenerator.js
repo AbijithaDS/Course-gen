@@ -4,15 +4,39 @@ const templateService = require('./templateService');
 const subjectStaffService = require('./subjectStaffService');
 
 /**
- * Normalizes Markdown to clean plain text for DOCX rendering
+ * Cleans CO and K references from the text to prevent duplication in dedicated columns.
+ */
+function cleanAllTextOfCOK(text) {
+  if (!text) return '';
+  
+  // 1. Remove parenthesized CO and K references (e.g., "(CO4)", "(K2)", "(CO3, K1)", "(CO4, K4)", "(K4, CO4)")
+  let cleaned = text.replace(/\(\s*(?:CO[1-5]|K[1-6])\s*(?:,\s*(?:CO[1-5]|K[1-6]))?\s*\)/gi, '');
+  cleaned = cleaned.replace(/\(\s*(?:CO[1-5]|K[1-6])\s*\)/gi, '');
+  cleaned = cleaned.replace(/\(\s*(?:CO[1-5]|K[1-6])\s*,\s*(?:CO[1-5]|K[1-6])\s*\)/gi, '');
+  cleaned = cleaned.replace(/\(\s*K[1-6]\s*,\s*CO[1-5]\s*\)/gi, '');
+  
+  // 2. Remove non-parenthesized CO/K references at the end of lines
+  // Exclude CO2 and K1 to prevent false matches with Carbon Dioxide (CO2) or Vitamin K1 in sentences.
+  cleaned = cleaned.replace(/\s*\b(?:CO[1345]|K[2-6])\b\s*(?=[.?]?\s*(?:\r?\n|$))/gi, (match) => {
+    const puncMatch = match.match(/[.?]/);
+    return puncMatch ? puncMatch[0] : '';
+  });
+  
+  return cleaned.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Normalizes Markdown to clean plain text for DOCX rendering and strips CO/K mappings.
  */
 function formatMarkdownForDocx(md) {
   if (!md) return '';
-  return md
+  let text = md
     .replace(/\*\*(.*?)\*\*/g, '$1') // Strip bold marks
     .replace(/\*(.*?)\*/g, '$1')     // Strip italics marks
     .replace(/_([^_]+)_/g, '$1')     // Strip underline marks
     .trim();
+    
+  return cleanAllTextOfCOK(text);
 }
 
 // =====================================================================
@@ -494,7 +518,7 @@ function generateDocument(payload) {
       SEMESTER: semester ? `Sem ${semester}` : 'N/A',
       GENERATION_DATE: displayDate,
       DOCUMENT_TYPE: docTypeLabel,
-      content: content
+      content: cleanAllTextOfCOK(content)
     };
     const htmlFallback = compileHtmlWordFallback(fallbackPlaceholders);
     const outputBuffer = Buffer.from(htmlFallback, 'utf8');

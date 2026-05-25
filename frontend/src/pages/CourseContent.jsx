@@ -60,11 +60,32 @@ const CourseContent = () => {
     }
   };
 
+  // Cleans CO and K references from the text to prevent duplication in dedicated columns.
+  const cleanAllTextOfCOK = (text) => {
+    if (!text) return '';
+    
+    // 1. Remove parenthesized CO and K references (e.g., "(CO4)", "(K2)", "(CO3, K1)", "(CO4, K4)", "(K4, CO4)")
+    let cleaned = text.replace(/\(\s*(?:CO[1-5]|K[1-6])\s*(?:,\s*(?:CO[1-5]|K[1-6]))?\s*\)/gi, '');
+    cleaned = cleaned.replace(/\(\s*(?:CO[1-5]|K[1-6])\s*\)/gi, '');
+    cleaned = cleaned.replace(/\(\s*(?:CO[1-5]|K[1-6])\s*,\s*(?:CO[1-5]|K[1-6])\s*\)/gi, '');
+    cleaned = cleaned.replace(/\(\s*K[1-6]\s*,\s*CO[1-5]\s*\)/gi, '');
+    
+    // 2. Remove non-parenthesized CO/K references at the end of lines
+    // Exclude CO2 and K1 to prevent false matches with Carbon Dioxide (CO2) or Vitamin K1 in sentences.
+    cleaned = cleaned.replace(/\s*\b(?:CO[1345]|K[2-6])\b\s*(?=[.?]?\s*(?:\r?\n|$))/gi, (match) => {
+      const puncMatch = match.match(/[.?]/);
+      return puncMatch ? puncMatch[0] : '';
+    });
+    
+    return cleaned.replace(/\s+/g, ' ').trim();
+  };
+
   // Convert Markdown to HTML for exports
   const renderMarkdownToHtml = (md) => {
     if (!md) return '';
+    let cleaned = cleanAllTextOfCOK(md);
     // Quick simple markdown parser for bold, headers, list, etc.
-    let html = md
+    let html = cleaned
       .replace(/^### (.*$)/gim, '<h3>$1</h3>')
       .replace(/^## (.*$)/gim, '<h2>$1</h2>')
       .replace(/^# (.*$)/gim, '<h1>$1</h1>')
@@ -106,12 +127,13 @@ const CourseContent = () => {
 
     const clean = (txt) => {
       if (!txt) return '';
-      return txt
+      let cleaned = txt
         .replace(/\*\*(.*?)\*\*/g, '$1') // Strip bold
         .replace(/\*(.*?)\*/g, '$1')     // Strip italics
         .replace(/_([^_]+)_/g, '$1')     // Strip underline
         .replace(/^\s*[\-\*\+]\s+/, '') // Strip list bullets
         .trim();
+      return cleanAllTextOfCOK(cleaned);
     };
 
     const cleanOption = (txt) => {

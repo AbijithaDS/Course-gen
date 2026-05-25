@@ -96,5 +96,19 @@
     "timestamp": "2026-05-25T13:24:52.580Z",
     "wordCount": 536,
     "model": "gemini-2.5-flash"
+  },
+  {
+    "id": "GEN1779716302009",
+    "subjectCode": "23CS412",
+    "subjectName": "Embedded System and IoT",
+    "departmentId": "AI_DS",
+    "semester": 6,
+    "regulation": "R2023",
+    "type": "cia1",
+    "content": "---\n**23CS412 - Embedded System and IoT**\n\n**Continuous Internal Assessment 1 (CIA 1)**\n\n**Regulation:** R2023\n**Semester:** VI\n**Department:** AI_DS Engineering\n\n**Time:** 2 Hours\n**Max. Marks:** 60\n\n---\n\n### Part A (10 x 2 = 20 Marks)\n**ANSWER ALL THE QUESTIONS**\n\n1.  Differentiate between a microprocessor and a microcontroller based on their architecture. (CO3)\n2.  Explain the purpose of an Interrupt Service Routine (ISR) in an embedded system. (CO3)\n3.  List two characteristics that differentiate an embedded system from a general-purpose computing system. (CO4)\n4.  What is the significance of the Real-Time Operating System (RTOS) kernel in an embedded system? (CO4)\n5.  Define \"context switching\" in the context of an RTOS. (CO4)\n6.  Name two typical constraints faced during the design of an embedded system. (CO4)\n7.  State any two characteristics of an IoT system. (CO5)\n8.  Briefly explain the role of sensors in an IoT ecosystem. (CO5)\n9.  Distinguish between Wi-Fi and Bluetooth as IoT connectivity technologies based on their typical range. (CO5)\n10. What is a \"smart object\" in the context of IoT? (CO5)\n\n### Part B (2 x 16 = 32 Marks & 1 x 8 = 8 Marks)\n**ANSWER ALL THE QUESTIONS**\n\n11. a. Design a simple embedded system for an automated street light control application. Describe the system architecture, list the necessary hardware components (processor, sensors, actuators, communication interface), and outline the software flow. Justify your choice of processor and communication interface considering real-time constraints. (16 Marks) (CO4, K4)\n    **OR**\n    b. Analyze the critical challenges in developing real-time embedded systems. Discuss how a Real-Time Operating System (RTOS) addresses these challenges, specifically elaborating on various task scheduling algorithms and inter-task communication mechanisms like semaphores and message queues. (16 Marks) (CO4, K4)\n\n12. a. Illustrate the 5-layer IoT architecture with a neat diagram. Describe the function of each layer and provide examples of technologies or protocols typically used at each layer. (16 Marks) (CO5, K3)\n    **OR**\n    b. Elaborate on various IoT enabling technologies. Explain how RFID, smart objects, and different wireless communication protocols (like Zigbee, LoRa, and cellular technologies) contribute to the functionality and deployment of diverse IoT solutions. (16 Marks) (CO5, K3)\n\n13. a. Consider a scenario where an embedded system needs to control a DC motor's speed and simultaneously monitor a temperature sensor. Write a pseudo-code or outline the structure of a C program that utilizes interrupts for high-priority temperature data acquisition and a polling mechanism for adjusting motor speed, ensuring the temperature reading is handled promptly. (8 Marks) (CO3, K3)\n    **OR**\n    b. Explain the concept of 'deadlock' in a multi-tasking embedded system environment where multiple tasks compete for shared resources. Propose at least two methods to prevent or mitigate deadlocks, providing a brief explanation for each. (8 Marks) (CO3, K3)",
+    "generatedBy": "faculty",
+    "timestamp": "2026-05-25T13:38:22.009Z",
+    "wordCount": 455,
+    "model": "gemini-2.5-flash"
   }
 ]
