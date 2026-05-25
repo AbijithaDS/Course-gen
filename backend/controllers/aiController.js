@@ -22,14 +22,77 @@ exports.generateContent = async (req, res) => {
 
     console.log(`AI Request: Type=${type} for ${sName} (${department}, Sem ${semester}, Reg ${regulation})`);
 
-    // Define prompts based on type
     let promptInstruction = '';
     switch (type) {
       case 'cia1':
-        promptInstruction = 'Generate a Continuous Internal Assessment 1 (CIA 1) question paper. Include Part A (short answers) and Part B (long answers).';
+        promptInstruction = `Generate a Continuous Internal Assessment 1 (CIA 1) question paper.
+        Syllabus Coverage: First half of the syllabus (Unit 1 fully, Unit 2 fully, and the first half of Unit 3).
+        
+        Total Marks: 60 Marks
+        Time Allowed: 2 Hours
+        
+        Format the question paper strictly as follows:
+        
+        ### Part A (Short Answer Questions)
+        * Marks: 10 questions x 2 marks = 20 marks
+        * All questions (Questions 1 to 10) are compulsory.
+        * Provide 10 brief, clear questions covering Units 1, 2, and the first half of Unit 3. Do not include answers, just the questions.
+        
+        ### Part B (Long Answer Questions)
+        * Marks: 2 questions x 16 marks = 32 marks
+        * Provide two questions (Question 11 and Question 12) with "Either/Or" options (choose either a or b).
+        * Structure of Question 11 (16 marks):
+          - Option (a): Single comprehensive question for 16 marks.
+          - OR
+          - Option (b): Single comprehensive question for 16 marks.
+        * Structure of Question 12 (16 marks):
+          - Option (a): Split into sub-questions (i) and (ii), worth 8 marks each (total 16 marks).
+          - OR
+          - Option (b): Split into sub-questions (i) and (ii), worth 8 marks each (total 16 marks).
+        
+        ### Part C (Analytical/Application Question)
+        * Marks: 1 question x 8 marks = 8 marks
+        * Provide one question (Question 13) with "Either/Or" option (choose either a or b).
+          - Option (a): 8-mark analytical/application question.
+          - OR
+          - Option (b): 8-mark analytical/application question.
+          
+        Ensure that the total marks compile exactly to 60 (Part A: 20 + Part B: 32 + Part C: 8). Format the output cleanly in professional academic layout using Markdown.`;
         break;
       case 'cia2':
-        promptInstruction = 'Generate a Continuous Internal Assessment 2 (CIA 2) question paper. Include Part A (short answers) and Part B (long answers).';
+        promptInstruction = `Generate a Continuous Internal Assessment 2 (CIA 2) question paper.
+        Syllabus Coverage: Second half of the syllabus (remaining topics of Unit 3 fully, Unit 4 fully, and Unit 5 fully).
+        
+        Total Marks: 60 Marks
+        Time Allowed: 2 Hours
+        
+        Format the question paper strictly as follows:
+        
+        ### Part A (Short Answer Questions)
+        * Marks: 10 questions x 2 marks = 20 marks
+        * All questions (Questions 1 to 10) are compulsory.
+        * Provide 10 brief, clear questions covering the second half of Unit 3, Unit 4, and Unit 5. Do not include answers, just the questions.
+        
+        ### Part B (Long Answer Questions)
+        * Marks: 2 questions x 16 marks = 32 marks
+        * Provide two questions (Question 11 and Question 12) with "Either/Or" options (choose either a or b).
+        * Structure of Question 11 (16 marks):
+          - Option (a): Single comprehensive question for 16 marks.
+          - OR
+          - Option (b): Single comprehensive question for 16 marks.
+        * Structure of Question 12 (16 marks):
+          - Option (a): Split into sub-questions (i) and (ii), worth 8 marks each (total 16 marks).
+          - OR
+          - Option (b): Split into sub-questions (i) and (ii), worth 8 marks each (total 16 marks).
+        
+        ### Part C (Analytical/Application Question)
+        * Marks: 1 question x 8 marks = 8 marks
+        * Provide one question (Question 13) with "Either/Or" option (choose either a or b).
+          - Option (a): 8-mark analytical/application question.
+          - OR
+          - Option (b): 8-mark analytical/application question.
+          
+        Ensure that the total marks compile exactly to 60 (Part A: 20 + Part B: 32 + Part C: 8). Format the output cleanly in professional academic layout using Markdown.`;
         break;
       case 'qbank':
         promptInstruction = 'Generate a comprehensive Question Bank with unit-wise categorization. Include 2-mark and 16-mark questions.';

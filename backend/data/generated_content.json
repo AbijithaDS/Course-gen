@@ -1,1 +1,30 @@
-[]
+[
+  {
+    "id": "GEN1779688436075",
+    "subjectCode": "23AD534",
+    "subjectName": "UI - UX Design",
+    "departmentId": "AI_DS",
+    "semester": 6,
+    "regulation": "R2023",
+    "type": "cia1",
+    "content": "**Subject Code & Name:** 23AD534 - UI - UX Design\n**Department:** AI_DS Engineering\n**Semester:** 6\n**Academic Regulation:** R2023\n**Maximum Marks:** 50\n**Duration:** 2 Hours\n\n---\n\n### Part A (Short Answers)\n**Answer all questions. (10 x 2 = 20 Marks)**\n\n1.  Differentiate between User Interface (UI) and User Experience (UX).\n2.  List two core principles of User-Centered Design (UCD).\n3.  What is the primary purpose of conducting user research in the initial stages of a project?\n4.  Define 'Persona' in the context of UX design. Why is it used?\n5.  Explain the concept of 'Affordance' with a simple real-world example.\n6.  What role does 'Information Architecture' play in the usability of a digital product?\n7.  Mention two common methods used for gathering user requirements during the discovery phase.\n8.  Briefly explain 'Mental Models' in Interaction Design and their significance.\n9.  What is 'Usability' and why is it considered a crucial aspect of good design?\n10. Describe the main components that typically constitute an 'Empathy Map'.\n\n---\n\n### Part B (Long Answers)\n**Answer any three questions. (3 x 10 = 30 Marks)**\n\n11. Explain the different phases of the User-Centered Design (UCD) process. Discuss how each phase contributes to creating an effective and user-friendly digital product.\n\n12. Elaborate on various user research methods such as Interviews, Surveys, and Observations. Discuss their suitability for different stages of the design process and highlight their respective advantages and disadvantages.\n\n13. What is a Persona? Describe the step-by-step process of creating effective user personas. Illustrate with an example of a persona for a mobile banking application, detailing key attributes like demographics, goals, frustrations, and behaviors.\n\n14. Discuss the importance of Information Architecture (IA) in enhancing user experience. Explain key components of IA such as organization systems, labeling systems, navigation systems, and search systems with relevant examples for each.",
+    "generatedBy": "faculty",
+    "timestamp": "2026-05-25T05:53:56.075Z",
+    "wordCount": 302,
+    "model": "gemini-2.5-flash"
+  },
+  {
+    "id": "GEN1779688495289",
+    "subjectCode": "23AD534",
+    "subjectName": "UI - UX Design",
+    "departmentId": "AI_DS",
+    "semester": 6,
+    "regulation": "R2023",
+    "type": "cia2",
+    "content": "**Subject:** 23AD534 - UI - UX Design\n**Department:** AI_DS Engineering\n**Semester:** 6\n**Academic Regulation:** R2023\n\n**Continuous Internal Assessment 2 (CIA 2)**\n\n**Time:** 1.5 Hours\n**Total Marks:** 36\n\n**Instructions:**\n1.  Answer ALL questions in Part A.\n2.  Answer ALL questions in Part B, choosing either (a) or (b) for each question.\n\n---\n\n### **Part A (Short Answer Questions)**\n**(Answer all questions - 5 x 2 = 10 Marks)**\n\n1.  Define Information Architecture (IA) and state its primary goal in the context of UX design.\n2.  What is the significance of \"User Flow\" diagrams in the design process?\n3.  Distinguish between a \"Wireframe\" and a \"Mockup\" with respect to their purpose and level of detail.\n4.  Explain the UI design principle of \"Affordance\" with a suitable example.\n5.  Briefly describe \"Hick's Law\" and \"Fitt's Law\" and their relevance in UI design.\n\n---\n\n### **Part B (Long Answer Questions)**\n**(Answer all questions, choosing either (a) or (b) - 2 x 13 = 26 Marks)**\n\n**Question 1:**\n\na) Discuss various user research methods (e.g., interviews, surveys, contextual inquiry, usability testing) employed in the UX design process. For each method, explain its primary objective and when it is most effectively utilized.\n\n**OR**\n\nb) Explain the fundamental principles of Interaction Design (e.g., discoverability, feedback, consistency, affordance, learnability). Provide examples of how these principles are applied to create intuitive and engaging user interfaces.\n\n**Question 2:**\n\na) You are tasked with designing a new e-commerce website for a local artisan market. Outline the systematic approach you would take from defining user needs to creating a mid-fidelity prototype. Your answer should cover key stages such as user research synthesis, information architecture design, wireframing, and prototyping.\n\n**OR**\n\nb) Elaborate on the crucial role of usability testing in the iterative UX design lifecycle. Describe two distinct usability testing methods (e.g., moderated remote testing, unmoderated in-person testing, A/B testing, guerrilla testing), discussing their advantages, disadvantages, and scenarios where each would be most appropriate.",
+    "generatedBy": "faculty",
+    "timestamp": "2026-05-25T05:54:55.289Z",
+    "wordCount": 321,
+    "model": "gemini-2.5-flash"
+  }
+]
