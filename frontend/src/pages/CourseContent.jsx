@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { Settings, Sparkles, Download, Edit3, Save, RefreshCw, FileText, ArrowLeft, LogOut, Copy, Check, ExternalLink, FileCode } from 'lucide-react';
@@ -983,7 +984,7 @@ const CourseContent = () => {
       </div>
 
       {/* Google Forms Apps Script Modal */}
-      {showFormModal && (
+      {showFormModal && createPortal(
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           backgroundColor: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(8px)',
@@ -1050,11 +1051,12 @@ const CourseContent = () => {
               
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Premium Direct Google Forms Status/Success Modal */}
-      {directFormState.status !== 'idle' && (
+      {directFormState.status !== 'idle' && createPortal(
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(10px)',
@@ -1292,11 +1294,12 @@ const CourseContent = () => {
             )}
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Premium Alert Modal */}
-      {alertModal.isOpen && (
+      {alertModal.isOpen && createPortal(
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(8px)',
@@ -1325,7 +1328,8 @@ const CourseContent = () => {
               OK
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { 
@@ -766,7 +767,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* DETAILED VIEW MODAL */}
-      {selectedGen && (
+      {selectedGen && createPortal(
         <div style={{ 
           position: 'fixed', 
           top: 0, 
@@ -822,11 +823,12 @@ const AdminDashboard = () => {
               {selectedGen.content}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Premium Confirm Modal */}
-      {confirmModal.isOpen && (
+      {confirmModal.isOpen && createPortal(
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(8px)',
@@ -877,7 +879,8 @@ const AdminDashboard = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

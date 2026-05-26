@@ -1,12 +1,5 @@
 [
   {
-    "id": "CS101",
-    "code": "CS301",
-    "name": "Data Structures and Algorithms",
-    "departmentId": "CSE",
-    "semester": 1
-  },
-  {
     "id": "CS102",
     "code": "CS302",
     "name": "Database Management Systems",
