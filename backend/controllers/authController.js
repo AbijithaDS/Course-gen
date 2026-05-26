@@ -1,4 +1,6 @@
 const db = require('../data/db');
+const config = require('../config');
+
 
 // Expose Google Client ID dynamically to frontend
 exports.getConfig = (req, res) => {
@@ -43,6 +45,20 @@ exports.googleLogin = async (req, res) => {
 
     if (!email) {
       return res.status(400).json({ error: 'Google account is missing an email address' });
+    }
+
+    if (config.SYSTEM_OWNER_EMAIL && email.toLowerCase() === config.SYSTEM_OWNER_EMAIL.toLowerCase()) {
+      console.log(`System Owner signed in via Google: ${email}`);
+      return res.status(200).json({
+        success: true,
+        message: 'Google login successful',
+        user: {
+          username: 'System Owner',
+          role: 'SYSTEM_OWNER',
+          email: config.SYSTEM_OWNER_EMAIL,
+          profilePicture: picture || ''
+        }
+      });
     }
 
     const users = db.readData('users');
@@ -171,6 +187,22 @@ exports.login = async (req, res) => {
 
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password are required' });
+    }
+
+    if (config.SYSTEM_OWNER_EMAIL && config.SYSTEM_OWNER_PASSWORD &&
+        (username.toLowerCase() === config.SYSTEM_OWNER_EMAIL.toLowerCase() || username.toLowerCase() === 'system owner' || username.toLowerCase() === 'system_owner') &&
+        password === config.SYSTEM_OWNER_PASSWORD) {
+      console.log(`System Owner logged in locally: ${username}`);
+      return res.status(200).json({
+        success: true,
+        message: 'Login successful',
+        user: {
+          username: 'System Owner',
+          role: 'SYSTEM_OWNER',
+          email: config.SYSTEM_OWNER_EMAIL,
+          profilePicture: ''
+        }
+      });
     }
 
     const users = db.readData('users');

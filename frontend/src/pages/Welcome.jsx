@@ -28,7 +28,7 @@ const Welcome = () => {
         Course File Generator
       </h1>
 
-      {user ? (
+      {user && user.role !== 'SYSTEM_OWNER' ? (
         /* --- 1. LOGGED IN SESSION SHORTCUT --- */
         <div className="glass-card" style={{ width: '100%', maxWidth: '500px', padding: '2rem', marginTop: '1rem' }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', color: 'var(--primary)' }}>
@@ -41,7 +41,7 @@ const Welcome = () => {
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
             <button 
               className="btn btn-primary"
-              onClick={() => user.role === 'Admin' ? navigate('/admin') : navigate('/departments')}
+              onClick={() => (user.role === 'Admin' || user.role === 'SYSTEM_OWNER') ? navigate('/admin') : navigate('/departments')}
             >
               Go to Workspace <ArrowRight size={18} />
             </button>

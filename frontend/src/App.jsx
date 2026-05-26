@@ -20,8 +20,8 @@ const PrivateRoute = ({ children }) => {
 
 // Guard for administrator-only pages
 const AdminRoute = ({ children }) => {
-  const { user } = useAppContext();
-  return user && user.role === 'Admin' ? children : <Navigate to="/" replace />;
+  const { user, isAdmin } = useAppContext();
+  return user && isAdmin() ? children : <Navigate to="/" replace />;
 };
 
 function App() {

@@ -14,6 +14,7 @@ import {
   RefreshCw, 
   Search, 
   User, 
+  Users,
   Calendar,
   AlertCircle,
   FileSpreadsheet
@@ -21,7 +22,7 @@ import {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { logoutUser } = useAppContext();
+  const { user, logoutUser } = useAppContext();
   
   const [activeTab, setActiveTab] = useState('monitor');
   const [stats, setStats] = useState(null);
@@ -29,12 +30,14 @@ const AdminDashboard = () => {
   const [departments, setDepartments] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [regulations, setRegulations] = useState([]);
+  const [users, setUsers] = useState([]);
 
   // Load flags
   const [loadingStats, setLoadingStats] = useState(false);
   const [loadingGens, setLoadingGens] = useState(false);
   const [loadingDepts, setLoadingDepts] = useState(false);
   const [loadingSubjs, setLoadingSubjs] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   // Form states
   const [newDeptId, setNewDeptId] = useState('');
@@ -50,6 +53,7 @@ const AdminDashboard = () => {
   const [selectedGen, setSelectedGen] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [isDownloadingDoc, setIsDownloadingDoc] = useState(false);
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     title: '',
@@ -156,12 +160,28 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/users');
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setUsers(data.users);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
   useEffect(() => {
     fetchStats();
     fetchGenerations();
     fetchDepartments();
     fetchSubjects();
     fetchRegulations();
+    fetchUsers();
   }, []);
 
   // CRUD Actions
@@ -317,6 +337,61 @@ const AdminDashboard = () => {
     }
   };
 
+  // Download Word Doc from the detail view modal
+  const handleDownloadWordDoc = async (gen) => {
+    if (!gen) return;
+    setIsDownloadingDoc(true);
+    try {
+      const sName = typeof gen.subjectName === 'object' ? gen.subjectName.name : gen.subjectName;
+      const response = await fetch('http://localhost:5000/api/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subjectCode: gen.subjectCode,
+          subjectName: sName,
+          departmentId: gen.departmentId,
+          departmentName: gen.departmentId,
+          semester: gen.semester,
+          regulation: gen.regulation,
+          year: new Date().getFullYear().toString(),
+          type: gen.type,
+          content: gen.content
+        })
+      });
+
+      if (!response.ok) {
+        let errMsg = 'Server error';
+        try {
+          const errData = await response.json();
+          errMsg = errData.details || errData.error || errMsg;
+        } catch (_) {}
+        throw new Error(errMsg);
+      }
+
+      const blob = await response.blob();
+      const disposition = response.headers.get('Content-Disposition');
+      let filename = `${gen.subjectCode}_${gen.type.toUpperCase()}_Formatted.docx`;
+      if (disposition && disposition.includes('filename=')) {
+        const matches = disposition.match(/filename="?([^"]+)"?/);
+        if (matches && matches[1]) {
+          filename = matches[1];
+        }
+      }
+
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading Word document:', error);
+      alert(`Download failed: ${error.message}`);
+    } finally {
+      setIsDownloadingDoc(false);
+    }
+  };
+
   // Filter history logs (Unified Multi-criteria search and filter match logic)
   const filteredGenerations = generations.filter(gen => {
     const subjNameStr = typeof gen.subjectName === 'object' ? gen.subjectName.name : gen.subjectName;
@@ -343,7 +418,9 @@ const AdminDashboard = () => {
       <div className="top-nav" style={{ marginBottom: '1.5rem' }}>
         <div className="nav-left">
           <h2 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Admin Console</h2>
-          <span className="badge">System Owner</span>
+          <span className="badge">
+            {user?.role === 'SYSTEM_OWNER' ? 'SYSTEM OWNER' : 'ADMIN'}
+          </span>
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
           <button className="btn btn-secondary" onClick={logoutUser}>
@@ -383,6 +460,13 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab('generations')}
           >
             <FileText size={18} /> View Generated Files
+          </button>
+          <button 
+            className={`btn ${activeTab === 'users' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ justifyContent: 'flex-start', border: activeTab === 'users' ? 'none' : '' }}
+            onClick={() => setActiveTab('users')}
+          >
+            <Users size={18} /> Users list
           </button>
           <button 
             className={`btn ${activeTab === 'reports' ? 'btn-primary' : 'btn-secondary'}`}
@@ -823,12 +907,12 @@ const AdminDashboard = () => {
                   <table className="responsive-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
                     <thead>
                       <tr style={{ borderBottom: '2px solid var(--border-light)', color: 'var(--text-secondary)' }}>
-                        <th style={{ padding: '0.9rem 0.75rem', fontWeight: 600, width: '26%' }}>Subject</th>
-                        <th style={{ padding: '0.9rem 0.75rem', fontWeight: 600, width: '24%' }}>Scope</th>
-                        <th style={{ padding: '0.9rem 0.75rem', fontWeight: 600, width: '20%' }}>Type</th>
-                        <th style={{ padding: '0.9rem 0.75rem', fontWeight: 600, width: '14%' }}>Generated By</th>
-                        <th style={{ padding: '0.9rem 0.75rem', fontWeight: 600, width: '10%' }}>Word Count</th>
-                        <th style={{ padding: '0.9rem 0.75rem', fontWeight: 600, width: '6%', textAlign: 'center' }}>Details</th>
+                        <th style={{ padding: '1rem 0.75rem', fontWeight: 600, width: '26%' }}>Subject</th>
+                        <th style={{ padding: '1rem 0.75rem', fontWeight: 600, width: '24%' }}>Scope</th>
+                        <th style={{ padding: '1rem 0.75rem', fontWeight: 600, width: '20%' }}>Type</th>
+                        <th style={{ padding: '1rem 0.75rem', fontWeight: 600, width: '14%' }}>Generated By</th>
+                        <th style={{ padding: '1rem 0.75rem', fontWeight: 600, width: '10%' }}>Word Count</th>
+                        <th style={{ padding: '1rem 0.75rem', fontWeight: 600, width: '6%', textAlign: 'center' }}>Details</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -837,29 +921,29 @@ const AdminDashboard = () => {
                         return (
                           <tr key={gen.id} className="premium-table-row" style={{ borderBottom: '1px solid var(--border-light)' }}>
                             {/* Subject Column */}
-                            <td data-label="Subject" style={{ padding: '1.15rem 0.75rem', verticalAlign: 'middle' }}>
-                              <div style={{ fontWeight: 700, fontSize: '0.85rem', lineHeight: '1.2' }}>{gen.subjectCode}</div>
-                              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: '1.2', marginTop: '1px' }}>{sName}</div>
+                            <td data-label="Subject" style={{ padding: '1.6rem 0.75rem', verticalAlign: 'middle' }}>
+                              <div style={{ fontWeight: 700, fontSize: '0.85rem', lineHeight: '1.3' }}>{gen.subjectCode}</div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: '1.3', marginTop: '2px' }}>{sName}</div>
                             </td>
                             {/* Scope Column */}
-                            <td data-label="Scope" style={{ padding: '1.15rem 0.75rem', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                            <td data-label="Scope" style={{ padding: '1.6rem 0.75rem', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
                               <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)' }}>
                                 {gen.departmentId} <span style={{ color: 'var(--text-muted)', margin: '0 2px' }}>•</span> Sem {gen.semester} <span style={{ color: 'var(--text-muted)', margin: '0 2px' }}>•</span> {gen.regulation}
                               </div>
                             </td>
                             {/* Type Column */}
-                            <td data-label="Type" style={{ padding: '1.15rem 0.75rem', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                            <td data-label="Type" style={{ padding: '1.6rem 0.75rem', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
                               <span className="badge" style={{ 
                                 display: 'inline-flex', 
                                 alignItems: 'center', 
                                 justifyContent: 'center',
-                                height: '22px', 
+                                height: '24px', 
                                 minWidth: '100px', 
-                                fontSize: '0.7rem', 
+                                fontSize: '0.72rem', 
                                 textAlign: 'center', 
                                 whiteSpace: 'nowrap',
                                 lineHeight: '1',
-                                padding: '0 0.5rem',
+                                padding: '0 0.6rem',
                                 backgroundColor: '#e0e7ff',
                                 color: '#3730a3'
                               }}>
@@ -867,24 +951,24 @@ const AdminDashboard = () => {
                               </span>
                             </td>
                             {/* Generated By Column */}
-                            <td data-label="Generated By" style={{ padding: '1.15rem 0.75rem', verticalAlign: 'middle' }}>
+                            <td data-label="Generated By" style={{ padding: '1.6rem 0.75rem', verticalAlign: 'middle' }}>
                               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-primary)', fontSize: '0.8rem' }}>
                                 <User size={13} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
                                 <span style={{ fontWeight: 500 }}>{gen.generatedBy}</span>
                               </div>
                             </td>
                             {/* Word Count Column */}
-                            <td data-label="Word Count" style={{ padding: '1.15rem 0.75rem', verticalAlign: 'middle', whiteSpace: 'nowrap', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                            <td data-label="Word Count" style={{ padding: '1.6rem 0.75rem', verticalAlign: 'middle', whiteSpace: 'nowrap', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                               {gen.wordCount} words
                             </td>
                             {/* Details Column */}
-                            <td data-label="Details" style={{ padding: '1.15rem 0.75rem', verticalAlign: 'middle', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                            <td data-label="Details" style={{ padding: '1.6rem 0.75rem', verticalAlign: 'middle', textAlign: 'center', whiteSpace: 'nowrap' }}>
                               <button 
                                 className="btn btn-secondary" 
                                 style={{ 
-                                  padding: '0.2rem 0.6rem', 
+                                  padding: '0.25rem 0.7rem', 
                                   fontSize: '0.75rem', 
-                                  height: '24px',
+                                  height: '26px',
                                   whiteSpace: 'nowrap',
                                   display: 'inline-flex',
                                   alignItems: 'center',
@@ -934,6 +1018,164 @@ const AdminDashboard = () => {
             </div>
           )}
 
+          {/* TAB 6: USERS DIRECTORY LIST */}
+          {activeTab === 'users' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1, overflow: 'hidden' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 700 }}>System User Directory</h3>
+                <button className="btn btn-secondary" onClick={fetchUsers} disabled={loadingUsers} style={{ padding: '0.5rem 1rem' }}>
+                  <RefreshCw size={16} className={loadingUsers ? 'spinner' : ''} /> Refresh
+                </button>
+              </div>
+
+              {/* Search user bar */}
+              <div style={{ 
+                display: 'flex', 
+                gap: '0.75rem', 
+                alignItems: 'center', 
+                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                padding: '0.6rem 0.85rem',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border-glass)'
+              }}>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  backgroundColor: 'white', 
+                  border: '1px solid var(--border-light)', 
+                  borderRadius: 'var(--radius-sm)', 
+                  padding: '0.4rem 0.75rem', 
+                  flex: 1
+                }}>
+                  <Search size={16} color="var(--text-muted)" style={{ marginRight: '0.5rem' }} />
+                  <input 
+                    type="text" 
+                    placeholder="Search users by name, email, or role..." 
+                    style={{ border: 'none', outline: 'none', width: '100%', fontSize: '0.85rem' }}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {loadingUsers ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}><RefreshCw size={32} className="spinner" /></div>
+              ) : (
+                <div className="dashboard-scroll-content">
+                  {/* Premium User list grid/table */}
+                  <table className="responsive-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid var(--border-light)', color: 'var(--text-secondary)' }}>
+                        <th style={{ padding: '1rem 0.75rem', fontWeight: 600, width: '25%' }}>User Info</th>
+                        <th style={{ padding: '1rem 0.75rem', fontWeight: 600, width: '25%' }}>Email Address</th>
+                        <th style={{ padding: '1rem 0.75rem', fontWeight: 600, width: '15%' }}>Role</th>
+                        <th style={{ padding: '1rem 0.75rem', fontWeight: 600, width: '15%' }}>Auth Method</th>
+                        <th style={{ padding: '1rem 0.75rem', fontWeight: 600, width: '10%' }}>Generations</th>
+                        <th style={{ padding: '1rem 0.75rem', fontWeight: 600, width: '10%' }}>Created At</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users
+                        .filter(u => {
+                          const query = searchTerm.toLowerCase();
+                          return (
+                            (u.username && u.username.toLowerCase().includes(query)) ||
+                            (u.email && u.email.toLowerCase().includes(query)) ||
+                            (u.role && u.role.toLowerCase().includes(query))
+                          );
+                        })
+                        .map(user => {
+                          const genCount = generations.filter(g => g.generatedBy && g.generatedBy.toLowerCase() === user.username.toLowerCase()).length;
+                          const createdDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          }) : 'Seeded Account';
+
+                          return (
+                            <tr key={user.username} className="premium-table-row" style={{ borderBottom: '1px solid var(--border-light)' }}>
+                              {/* User Profile Info */}
+                              <td data-label="User Info" style={{ padding: '1.25rem 0.75rem', verticalAlign: 'middle' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                  {user.profilePicture ? (
+                                    <img 
+                                      src={user.profilePicture} 
+                                      alt={user.username} 
+                                      style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} 
+                                    />
+                                  ) : (
+                                    <div style={{ 
+                                      width: '32px', 
+                                      height: '32px', 
+                                      borderRadius: '50%', 
+                                      backgroundColor: user.role === 'Admin' ? '#fee2e2' : '#e0e7ff', 
+                                      color: user.role === 'Admin' ? '#ef4444' : '#4f46e5', 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      justifyContent: 'center',
+                                      fontWeight: 'bold',
+                                      fontSize: '0.85rem'
+                                    }}>
+                                      {user.username.substring(0, 2).toUpperCase()}
+                                    </div>
+                                  )}
+                                  <div style={{ fontWeight: 700, fontSize: '0.85rem' }}>{user.username}</div>
+                                </div>
+                              </td>
+                              {/* Email */}
+                              <td data-label="Email" style={{ padding: '1.25rem 0.75rem', verticalAlign: 'middle', color: user.email ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                                {user.email || 'No email associated'}
+                              </td>
+                              {/* Role */}
+                              <td data-label="Role" style={{ padding: '1.25rem 0.75rem', verticalAlign: 'middle' }}>
+                                <span style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  padding: '0.2rem 0.5rem',
+                                  fontSize: '0.7rem',
+                                  fontWeight: 600,
+                                  borderRadius: 'var(--radius-full)',
+                                  backgroundColor: user.role === 'Admin' ? '#fef2f2' : '#f0fdf4',
+                                  color: user.role === 'Admin' ? '#991b1b' : '#166534'
+                                }}>
+                                  {user.role}
+                                </span>
+                              </td>
+                              {/* Auth Provider */}
+                              <td data-label="Auth Method" style={{ padding: '1.25rem 0.75rem', verticalAlign: 'middle' }}>
+                                <span style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  padding: '0.2rem 0.5rem',
+                                  fontSize: '0.7rem',
+                                  fontWeight: 500,
+                                  borderRadius: 'var(--radius-sm)',
+                                  backgroundColor: user.authProvider === 'google' ? '#fff7ed' : '#f1f5f9',
+                                  color: user.authProvider === 'google' ? '#c2410c' : '#475569'
+                                }}>
+                                  {user.authProvider === 'google' ? 'Google Auth' : 'Password Auth'}
+                                </span>
+                              </td>
+                              {/* Generations Count */}
+                              <td data-label="Generations" style={{ padding: '1.25rem 0.75rem', verticalAlign: 'middle', fontWeight: 600 }}>
+                                <span style={{ color: genCount > 0 ? 'var(--primary)' : 'var(--text-muted)' }}>
+                                  {genCount} files
+                                </span>
+                              </td>
+                              {/* Created At */}
+                              <td data-label="Created At" style={{ padding: '1.25rem 0.75rem', verticalAlign: 'middle', color: 'var(--text-secondary)' }}>
+                                {createdDate}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       </div>
 
@@ -963,20 +1205,39 @@ const AdminDashboard = () => {
             backgroundColor: 'white'
           }}>
             {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border-light)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
               <div>
                 <h4 style={{ fontSize: '1.35rem', fontWeight: 800 }}>{getDocTypeLabel(selectedGen.type)} Details</h4>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                   <strong>Subject:</strong> {selectedGen.subjectCode} | <strong>Author:</strong> {selectedGen.generatedBy} | <strong>Regulation:</strong> {selectedGen.regulation}
                 </p>
               </div>
-              <button 
-                onClick={() => setSelectedGen(null)}
-                className="btn btn-secondary" 
-                style={{ padding: '0.35rem 0.75rem', fontSize: '0.85rem' }}
-              >
-                Close Window
-              </button>
+              <div style={{ display: 'flex', gap: '0.6rem', flexShrink: 0 }}>
+                <button 
+                  onClick={() => handleDownloadWordDoc(selectedGen)}
+                  disabled={isDownloadingDoc}
+                  className="btn btn-primary" 
+                  style={{ 
+                    padding: '0.4rem 0.85rem', 
+                    fontSize: '0.85rem', 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '0.4rem',
+                    opacity: isDownloadingDoc ? 0.7 : 1,
+                    cursor: isDownloadingDoc ? 'wait' : 'pointer'
+                  }}
+                >
+                  <Download size={15} />
+                  {isDownloadingDoc ? 'Generating...' : 'Download Doc'}
+                </button>
+                <button 
+                  onClick={() => setSelectedGen(null)}
+                  className="btn btn-secondary" 
+                  style={{ padding: '0.4rem 0.85rem', fontSize: '0.85rem' }}
+                >
+                  Close Window
+                </button>
+              </div>
             </div>
 
             {/* Modal Body */}

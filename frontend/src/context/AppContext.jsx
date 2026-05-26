@@ -104,9 +104,14 @@ export const AppProvider = ({ children }) => {
     setSubjects([]);
   };
 
+  const isSystemOwner = () => user?.role === 'SYSTEM_OWNER';
+  const isAdmin = () => user?.role === 'Admin' || user?.role === 'SYSTEM_OWNER';
+  const isFaculty = () => user?.role === 'Faculty';
+
   return (
     <AppContext.Provider value={{
       user, loginUser, logoutUser,
+      isSystemOwner, isAdmin, isFaculty,
       departments, loadingDepts, fetchDepartments,
       regulations, loadingRegs, fetchRegulations,
       subjects, loadingSubjs, fetchSubjects,

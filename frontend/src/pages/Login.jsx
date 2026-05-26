@@ -117,7 +117,7 @@ const Login = () => {
       if (res.ok && data.success) {
         loginUser(data.user);
         // Redirect based on role
-        if (data.user.role === 'Admin') {
+        if (data.user.role === 'Admin' || data.user.role === 'SYSTEM_OWNER') {
           navigate('/admin');
         } else {
           navigate('/departments');

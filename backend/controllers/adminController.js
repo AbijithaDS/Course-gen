@@ -1,4 +1,5 @@
 const db = require('../data/db');
+const config = require('../config');
 
 // --- DEPARTMENTS ---
 exports.getDepartments = (req, res) => {
@@ -119,13 +120,23 @@ exports.addRegulation = (req, res) => {
 // --- GENERATION LOGS & STATS ---
 exports.getGenerations = (req, res) => {
   const generations = db.readData('generatedContent');
+  const filtered = generations.filter(g => 
+    g.generatedBy !== 'System Owner' && 
+    g.generatedBy !== 'SYSTEM_OWNER' &&
+    g.generatedBy !== config.SYSTEM_OWNER_EMAIL
+  );
   // Return reversed to show newest generations first
-  res.status(200).json({ success: true, generations: [...generations].reverse() });
+  res.status(200).json({ success: true, generations: [...filtered].reverse() });
 };
 
 exports.getStats = (req, res) => {
   try {
-    const generations = db.readData('generatedContent');
+    const rawGenerations = db.readData('generatedContent');
+    const generations = rawGenerations.filter(g => 
+      g.generatedBy !== 'System Owner' && 
+      g.generatedBy !== 'SYSTEM_OWNER' &&
+      g.generatedBy !== config.SYSTEM_OWNER_EMAIL
+    );
     const departments = db.readData('departments');
     
     // Total generations count
@@ -192,3 +203,24 @@ exports.getStats = (req, res) => {
     res.status(500).json({ error: 'Server error computing dashboard analytics' });
   }
 };
+
+exports.getUsers = (req, res) => {
+  try {
+    const users = db.readData('users');
+    const sanitizedUsers = users
+      .filter(u => 
+        u.role !== 'SYSTEM_OWNER' && 
+        u.username !== 'System Owner' &&
+        u.email !== config.SYSTEM_OWNER_EMAIL
+      )
+      .map(u => {
+        const { password, ...safeUser } = u;
+        return safeUser;
+      });
+    res.status(200).json({ success: true, users: sanitizedUsers });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Server error retrieving users' });
+  }
+};
+
