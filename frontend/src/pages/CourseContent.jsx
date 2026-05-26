@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
@@ -38,6 +38,27 @@ const CourseContent = () => {
     title: '',
     message: ''
   });
+
+  // Dynamically apply fixed viewport dashboard layout class
+  useEffect(() => {
+    document.body.classList.add('dashboard-layout');
+    return () => {
+      document.body.classList.remove('dashboard-layout');
+    };
+  }, []);
+
+  // Manage body scroll locking when modals are active
+  useEffect(() => {
+    const isModalOpen = showFormModal || directFormState.status !== 'idle' || alertModal.isOpen;
+    if (isModalOpen) {
+      document.body.classList.add('body-scroll-lock');
+    } else {
+      document.body.classList.remove('body-scroll-lock');
+    }
+    return () => {
+      document.body.classList.remove('body-scroll-lock');
+    };
+  }, [showFormModal, directFormState.status, alertModal.isOpen]);
 
   if (!subject) {
     navigate('/subjects');

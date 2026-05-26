@@ -57,6 +57,27 @@ const AdminDashboard = () => {
     onConfirm: null
   });
 
+  // Dynamically apply fixed viewport dashboard layout class
+  useEffect(() => {
+    document.body.classList.add('dashboard-layout');
+    return () => {
+      document.body.classList.remove('dashboard-layout');
+    };
+  }, []);
+
+  // Manage body scroll locking when modals are active
+  useEffect(() => {
+    const isModalOpen = !!selectedGen || confirmModal.isOpen;
+    if (isModalOpen) {
+      document.body.classList.add('body-scroll-lock');
+    } else {
+      document.body.classList.remove('body-scroll-lock');
+    }
+    return () => {
+      document.body.classList.remove('body-scroll-lock');
+    };
+  }, [selectedGen, confirmModal.isOpen]);
+
   // Fetch all basic datasets
   const fetchStats = async () => {
     setLoadingStats(true);
@@ -317,7 +338,7 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '2rem', flex: 1, alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', gap: '2rem', flex: 1, overflow: 'hidden' }}>
         
         {/* Sidebar Nav */}
         <div style={{ width: '250px', display: 'flex', flexDirection: 'column', gap: '0.5rem', flexShrink: 0 }}>
@@ -359,11 +380,11 @@ const AdminDashboard = () => {
         </div>
 
         {/* Dynamic Content Panel */}
-        <div className="glass-card" style={{ flex: 1, minHeight: '75vh', display: 'flex', flexDirection: 'column' }}>
+        <div className="glass-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           
           {/* TAB 1: MONITOR & STATS */}
           {activeTab === 'monitor' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', flex: 1 }} className="dashboard-scroll-content">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 style={{ fontSize: '1.5rem', fontWeight: 700 }}>System Usage & Analytics</h3>
                 <button className="btn btn-secondary" onClick={fetchStats} disabled={loadingStats} style={{ padding: '0.5rem 1rem' }}>
@@ -465,14 +486,14 @@ const AdminDashboard = () => {
 
           {/* TAB 2: DEPARTMENTS MANAGEMENT */}
           {activeTab === 'departments' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1, overflow: 'hidden' }}>
               <h3 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Manage Academic Departments</h3>
 
               {successMsg && <div style={{ backgroundColor: '#d1fae5', color: '#065f46', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', fontSize: '0.875rem' }}>{successMsg}</div>}
               {errorMsg && <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', fontSize: '0.875rem' }}>{errorMsg}</div>}
 
               {/* Form and List Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem', flex: 1, overflow: 'hidden' }}>
                 
                 {/* Add Form */}
                 <form onSubmit={handleAddDept} className="glass-card" style={{ padding: '1.5rem', backgroundColor: 'rgba(255,255,255,0.4)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -505,7 +526,7 @@ const AdminDashboard = () => {
                 </form>
 
                 {/* List Table */}
-                <div style={{ overflowX: 'auto' }}>
+                <div className="dashboard-scroll-content">
                   {loadingDepts ? (
                     <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><RefreshCw size={32} className="spinner" /></div>
                   ) : (
@@ -544,14 +565,14 @@ const AdminDashboard = () => {
 
           {/* TAB 3: SUBJECTS MANAGEMENT */}
           {activeTab === 'subjects' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1, overflow: 'hidden' }}>
               <h3 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Manage Academic Subjects</h3>
 
               {successMsg && <div style={{ backgroundColor: '#d1fae5', color: '#065f46', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', fontSize: '0.875rem' }}>{successMsg}</div>}
               {errorMsg && <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', fontSize: '0.875rem' }}>{errorMsg}</div>}
 
               {/* Form and List Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.75fr', gap: '2rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.75fr', gap: '2rem', flex: 1, overflow: 'hidden' }}>
                 
                 {/* Add Form */}
                 <form onSubmit={handleAddSubject} className="glass-card" style={{ padding: '1.5rem', backgroundColor: 'rgba(255,255,255,0.4)', display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
@@ -612,7 +633,7 @@ const AdminDashboard = () => {
                 </form>
 
                 {/* List Table */}
-                <div style={{ overflowX: 'auto' }}>
+                <div className="dashboard-scroll-content">
                   {loadingSubjs ? (
                     <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><RefreshCw size={32} className="spinner" /></div>
                   ) : (
@@ -655,7 +676,7 @@ const AdminDashboard = () => {
 
           {/* TAB 4: VIEW GENERATED FILES & AUDITS */}
           {activeTab === 'generations' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1, overflow: 'hidden' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Institution-Wide Generation Logs</h3>
                 <button className="btn btn-secondary" onClick={fetchGenerations} disabled={loadingGens} style={{ padding: '0.5rem 1rem' }}>
@@ -685,7 +706,7 @@ const AdminDashboard = () => {
                   <p>No generations found matching query.</p>
                 </div>
               ) : (
-                <div style={{ overflowX: 'auto', flex: 1 }}>
+                <div className="dashboard-scroll-content">
                   
                   {/* Generation Table */}
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
