@@ -510,13 +510,14 @@ const AdminDashboard = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem', flex: 1, overflow: 'hidden' }}>
                 
                 {/* Add Form */}
-                <form onSubmit={handleAddDept} className="glass-card" style={{ padding: '1.5rem', backgroundColor: 'rgba(255,255,255,0.4)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem' }}>Add New Department</h4>
+                <form onSubmit={handleAddDept} className="glass-card" style={{ padding: '1.25rem 1rem', backgroundColor: 'rgba(255,255,255,0.4)', display: 'flex', flexDirection: 'column', gap: '0.85rem', overflowY: 'auto', maxBlockSize: '100%' }}>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.1rem' }}>Add New Department</h4>
                   <div>
-                    <label className="label">Department Code (e.g. MECH)</label>
+                    <label className="label" style={{ marginBottom: '0.25rem' }}>Department Code (e.g. MECH)</label>
                     <input 
                       type="text" 
                       className="input-field" 
+                      style={{ padding: '0.6rem 0.8rem', fontSize: '0.9rem' }}
                       placeholder="e.g. MECH" 
                       value={newDeptId}
                       onChange={(e) => setNewDeptId(e.target.value)}
@@ -524,18 +525,19 @@ const AdminDashboard = () => {
                     />
                   </div>
                   <div>
-                    <label className="label">Department Full Name</label>
+                    <label className="label" style={{ marginBottom: '0.25rem' }}>Department Full Name</label>
                     <input 
                       type="text" 
                       className="input-field" 
+                      style={{ padding: '0.6rem 0.8rem', fontSize: '0.9rem' }}
                       placeholder="e.g. Mechanical Engineering" 
                       value={newDeptName}
                       onChange={(e) => setNewDeptName(e.target.value)}
                       required
                     />
                   </div>
-                  <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
-                    <Plus size={18} /> Add Branch
+                  <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.6rem 1rem', fontSize: '0.9rem', marginTop: '0.25rem' }}>
+                    <Plus size={16} /> Add Branch
                   </button>
                 </form>
 
@@ -589,14 +591,15 @@ const AdminDashboard = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.75fr', gap: '2rem', flex: 1, overflow: 'hidden' }}>
                 
                 {/* Add Form */}
-                <form onSubmit={handleAddSubject} className="glass-card" style={{ padding: '1.5rem', backgroundColor: 'rgba(255,255,255,0.4)', display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
-                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem' }}>Add New Subject</h4>
+                <form onSubmit={handleAddSubject} className="glass-card" style={{ padding: '1.25rem 1rem', backgroundColor: 'rgba(255,255,255,0.4)', display: 'flex', flexDirection: 'column', gap: '0.85rem', overflowY: 'auto', maxBlockSize: '100%' }}>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.1rem' }}>Add New Subject</h4>
                   
                   <div>
-                    <label className="label">Subject Code (e.g. CS301)</label>
+                    <label className="label" style={{ marginBottom: '0.25rem' }}>Subject Code (e.g. CS301)</label>
                     <input 
                       type="text" 
                       className="input-field" 
+                      style={{ padding: '0.6rem 0.8rem', fontSize: '0.9rem' }}
                       placeholder="e.g. CS301" 
                       value={newSubjCode}
                       onChange={(e) => setNewSubjCode(e.target.value)}
@@ -604,10 +607,11 @@ const AdminDashboard = () => {
                     />
                   </div>
                   <div>
-                    <label className="label">Subject Title</label>
+                    <label className="label" style={{ marginBottom: '0.25rem' }}>Subject Title</label>
                     <input 
                       type="text" 
                       className="input-field" 
+                      style={{ padding: '0.6rem 0.8rem', fontSize: '0.9rem' }}
                       placeholder="e.g. Data Structures" 
                       value={newSubjName}
                       onChange={(e) => setNewSubjName(e.target.value)}
@@ -615,9 +619,10 @@ const AdminDashboard = () => {
                     />
                   </div>
                   <div>
-                    <label className="label">Department mapping</label>
+                    <label className="label" style={{ marginBottom: '0.25rem' }}>Department mapping</label>
                     <select 
                       className="input-field"
+                      style={{ padding: '0.6rem 0.8rem', fontSize: '0.9rem' }}
                       value={newSubjDept}
                       onChange={(e) => setNewSubjDept(e.target.value)}
                       required
@@ -629,9 +634,10 @@ const AdminDashboard = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="label">Target Semester</label>
+                    <label className="label" style={{ marginBottom: '0.25rem' }}>Target Semester</label>
                     <select 
                       className="input-field"
+                      style={{ padding: '0.6rem 0.8rem', fontSize: '0.9rem' }}
                       value={newSubjSem}
                       onChange={(e) => setNewSubjSem(parseInt(e.target.value, 10))}
                       required
@@ -641,8 +647,8 @@ const AdminDashboard = () => {
                       ))}
                     </select>
                   </div>
-                  <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
-                    <Plus size={18} /> Add Subject
+                  <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.6rem 1rem', fontSize: '0.9rem', marginTop: '0.25rem' }}>
+                    <Plus size={16} /> Add Subject
                   </button>
                 </form>
 
