@@ -49,6 +49,12 @@ const AdminDashboard = () => {
   const [selectedGen, setSelectedGen] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null
+  });
 
   // Fetch all basic datasets
   const fetchStats = async () => {
@@ -159,8 +165,8 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleDeleteDept = async (id) => {
-    if (!window.confirm(`Are you sure you want to delete department ${id}?`)) return;
+  const executeDeleteDept = async (id) => {
+    setConfirmModal(prev => ({ ...prev, isOpen: false }));
     try {
       const res = await fetch(`http://localhost:5000/api/admin/departments/${id}`, {
         method: 'DELETE'
@@ -172,6 +178,15 @@ const AdminDashboard = () => {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const handleDeleteDept = (id) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Department',
+      message: `Are you sure you want to delete department ${id}?`,
+      onConfirm: () => executeDeleteDept(id)
+    });
   };
 
   const handleAddSubject = async (e) => {
@@ -208,8 +223,8 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleDeleteSubject = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this subject?')) return;
+  const executeDeleteSubject = async (id) => {
+    setConfirmModal(prev => ({ ...prev, isOpen: false }));
     try {
       const res = await fetch(`http://localhost:5000/api/admin/subjects/${id}`, {
         method: 'DELETE'
@@ -220,6 +235,15 @@ const AdminDashboard = () => {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const handleDeleteSubject = (id) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Subject',
+      message: 'Are you sure you want to delete this subject?',
+      onConfirm: () => executeDeleteSubject(id)
+    });
   };
 
   // CSV Report Generator
@@ -801,6 +825,60 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* Premium Confirm Modal */}
+      {confirmModal.isOpen && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999,
+          animation: 'fade-in 0.2s ease-out'
+        }}>
+          <div className="glass-card" style={{
+            width: '450px',
+            padding: '2.5rem',
+            border: '1px solid rgba(255,255,255,0.45)',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+            textAlign: 'center',
+            borderRadius: 'var(--radius-lg)'
+          }}>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem' }}>
+              {confirmModal.title}
+            </h3>
+            <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: '1.5' }}>
+              {confirmModal.message}
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <button 
+                className="btn btn-secondary" 
+                style={{ flex: 1 }}
+                onClick={() => setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null })}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn btn-primary" 
+                style={{ 
+                  flex: 1, 
+                  backgroundColor: '#ef4444', 
+                  boxShadow: '0 4px 14px 0 rgba(239, 68, 68, 0.39)',
+                  border: 'none'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#dc2626';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ef4444';
+                  e.currentTarget.style.boxShadow = '0 4px 14px 0 rgba(239, 68, 68, 0.39)';
+                }}
+                onClick={confirmModal.onConfirm}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

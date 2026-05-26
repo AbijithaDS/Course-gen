@@ -120,7 +120,19 @@ exports.generateContent = async (req, res) => {
         Do not include answers. Ensure the questions cover the respective unit syllabus thoroughly.`;
         break;
       case 'quiz':
-        promptInstruction = 'Generate 15 multiple-choice questions (MCQs) for a quiz, along with the correct answers.';
+        promptInstruction = `Generate exactly 15 multiple-choice questions (MCQs) for a quiz.
+        Each question must have exactly 4 choices (a, b, c, d) and specify the correct answer.
+        
+        Strictly use the following format for each question:
+        
+        Q1. <Question Text>
+        a) <Option A>
+        b) <Option B>
+        c) <Option C>
+        d) <Option D>
+        Correct: <Option Letter (a, b, c, or d)>
+        
+        Ensure that the questions cover the subject syllabus comprehensively. Do not include any extra text outside of the questions.`;
         break;
       case 'hots':
         promptInstruction = 'Generate 5 Higher Order Thinking Skills (HOTS) questions that require critical analysis and application of concepts.';
@@ -129,7 +141,52 @@ exports.generateContent = async (req, res) => {
         promptInstruction = 'Generate 3 practical assignment questions/scenarios that require students to research or build something.';
         break;
       case 'beyond':
-        promptInstruction = 'List 3 topics that are beyond the standard syllabus for this subject but are highly relevant to current industry trends, and explain why they are important.';
+        promptInstruction = `Generate exactly 5 relevant "Beyond-the-Syllabus" topics for each of the 5 Units of the syllabus (a total of 25 topics).
+        These topics must be highly relevant to current industry trends and modern technologies related to this subject.
+        
+        Strictly format the output as follows (do not skip any Unit, ensure all 5 units are generated, and numbering runs sequentially from 1 to 25 across the entire document):
+        
+        ### Unit I: <Unit Title>
+        Beyond-the-Syllabus Topics:
+        1. <Topic Name> – <Brief description of why it is important and its real-world application>
+        2. <Topic Name> – <Brief description>
+        3. <Topic Name> – <Brief description>
+        4. <Topic Name> – <Brief description>
+        5. <Topic Name> – <Brief description>
+        
+        ### Unit II: <Unit Title>
+        Beyond-the-Syllabus Topics:
+        6. <Topic Name> – <Brief description>
+        7. <Topic Name> – <Brief description>
+        8. <Topic Name> – <Brief description>
+        9. <Topic Name> – <Brief description>
+        10. <Topic Name> – <Brief description>
+        
+        ### Unit III: <Unit Title>
+        Beyond-the-Syllabus Topics:
+        11. <Topic Name> – <Brief description>
+        12. <Topic Name> – <Brief description>
+        13. <Topic Name> – <Brief description>
+        14. <Topic Name> – <Brief description>
+        15. <Topic Name> – <Brief description>
+        
+        ### Unit IV: <Unit Title>
+        Beyond-the-Syllabus Topics:
+        16. <Topic Name> – <Brief description>
+        17. <Topic Name> – <Brief description>
+        18. <Topic Name> – <Brief description>
+        19. <Topic Name> – <Brief description>
+        20. <Topic Name> – <Brief description>
+        
+        ### Unit V: <Unit Title>
+        Beyond-the-Syllabus Topics:
+        21. <Topic Name> – <Brief description>
+        22. <Topic Name> – <Brief description>
+        23. <Topic Name> – <Brief description>
+        24. <Topic Name> – <Brief description>
+        25. <Topic Name> – <Brief description>
+        
+        Do not write any introductory or concluding text. Write the content directly matching the requested structure.`;
         break;
       default:
         promptInstruction = 'Generate general academic content for this subject.';

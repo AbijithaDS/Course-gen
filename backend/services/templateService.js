@@ -9,10 +9,9 @@ const TEMPLATE_MAP = {
   cia2: 'Cia 1,2 - demo format.docx',
   qbank: 'Question Bank - format.docx',
   // fallback placeholders for other formats
-  quiz: 'Question Bank - format.docx',
   hots: 'Cia 1,2 - demo format.docx',
   assignment: 'Question Bank - format.docx',
-  beyond: 'Cia 1,2 - demo format.docx' 
+  beyond: 'Content Beyond The Syllabus - format.docx' 
 };
 
 /**

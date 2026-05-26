@@ -74,6 +74,45 @@ app.post('/api/export', (req, res) => {
   }
 });
 
+// Google Forms Apps Script Export Route
+app.post('/api/export-google-form', (req, res) => {
+  try {
+    const { subjectCode, subjectName, content } = req.body;
+    if (!subjectCode || !content) {
+      return res.status(400).json({ error: 'Subject code and content are required.' });
+    }
+    
+    const googleFormGenerator = require('./services/googleFormGenerator');
+    const script = googleFormGenerator.generateGoogleAppsScript(subjectCode, subjectName, content);
+    
+    res.status(200).json({ success: true, script });
+  } catch (error) {
+    console.error('Google Form Export error:', error);
+    res.status(500).json({ error: 'Failed to generate Google Form script', details: error.message });
+  }
+});
+
+// Direct Google Forms API Create Route
+app.post('/api/create-google-form', async (req, res) => {
+  try {
+    const { accessToken, subjectCode, subjectName, content } = req.body;
+    if (!accessToken) {
+      return res.status(400).json({ error: 'Google Access Token is required to create a form.' });
+    }
+    if (!subjectCode || !content) {
+      return res.status(400).json({ error: 'Subject code and content are required.' });
+    }
+    
+    const quizToGoogleForm = require('./services/quizToGoogleForm');
+    const result = await quizToGoogleForm.createFormFromQuiz(accessToken, subjectCode, subjectName, content);
+    
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Direct Google Form creation error:', error);
+    res.status(500).json({ error: 'Failed to create Google Form directly', details: error.message });
+  }
+});
+
 // Basic health check
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Course File Generator Backend is running with dynamic databases' });

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { Settings, Sparkles, Download, Edit3, Save, RefreshCw, FileText, ArrowLeft, LogOut } from 'lucide-react';
+import { Settings, Sparkles, Download, Edit3, Save, RefreshCw, FileText, ArrowLeft, LogOut, Copy, Check, ExternalLink, FileCode } from 'lucide-react';
 
 const TABS = [
   { id: 'cia1', label: 'CIA 1' },
@@ -21,6 +21,22 @@ const CourseContent = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [content, setContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [appsScriptCode, setAppsScriptCode] = useState('');
+  const [isGeneratingScript, setIsGeneratingScript] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [directFormState, setDirectFormState] = useState({
+    status: 'idle', // idle, auth, creating, success, error
+    message: '',
+    error: '',
+    editUrl: '',
+    responderUri: ''
+  });
+  const [alertModal, setAlertModal] = useState({
+    isOpen: false,
+    title: '',
+    message: ''
+  });
 
   if (!subject) {
     navigate('/subjects');
@@ -417,6 +433,147 @@ const CourseContent = () => {
         </html>
       `);
       printWindow.document.close();
+    } else if (activeTab === 'beyond') {
+      // === HIGH-FIDELITY BEYOND SYLLABUS PRINT ===
+      const yearSem = `${toRoman(year)}/${toRoman(semester)}`;
+      const academicYear = getAcademicYear();
+      const branch = getBranchName(department.id);
+      
+      const ayStart = parseInt(academicYear.split('-')[0], 10);
+      const batchStart = ayStart - parseInt(year, 10) + 1;
+      const batchEnd = batchStart + 4;
+      const batchStr = `${batchStart} – ${batchEnd}`;
+      
+      // Helper to parse beyond markdown
+      const parseBeyondMarkdown = (txt) => {
+        const units = [];
+        // Match headers like "### Unit I: Title" or "### Unit 1: Title"
+        const matches = [...txt.matchAll(/(?:^|\n)\s*###+\s*(Unit\s+[IVX\d]+[:\-\s].*?)(?=\n|$)/gi)];
+        
+        for (let idx = 0; idx < matches.length; idx++) {
+          const header = matches[idx][1].trim();
+          const startIdx = matches[idx].index + matches[idx][0].length;
+          const endIdx = matches[idx+1] ? matches[idx+1].index : txt.length;
+          const unitBody = txt.substring(startIdx, endIdx).trim();
+          
+          const lines = unitBody.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+          const topics = [];
+          
+          for (const line of lines) {
+            const m = line.match(/^\s*(\d+)[\.\)]\s*(.*?)\s*[\–\-\—\:]\s*(.*)/);
+            if (m) {
+              topics.push({
+                num: m[1].trim(),
+                name: m[2].replace(/\*+|_+/g, '').trim(),
+                desc: m[3].replace(/\*+|_+/g, '').trim()
+              });
+            } else {
+              const m_fallback = line.match(/^\s*(\d+)[\.\)]\s*(.*)/);
+              if (m_fallback) {
+                const fullText = m_fallback[2].replace(/\*+|_+/g, '').trim();
+                const parts = fullText.split("  ", 2);
+                topics.push({
+                  num: m_fallback[1].trim(),
+                  name: parts[0].trim(),
+                  desc: parts[1] ? parts[1].trim() : ""
+                });
+              }
+            }
+          }
+          
+          const titleParts = header.split(':');
+          const unitTitle = titleParts[1] ? titleParts[1].replace(/\*+|_+/g, '').trim() : header.replace(/\*+|_+/g, '').trim();
+          
+          units.push({
+            title: unitTitle,
+            topics: topics
+          });
+        }
+        return units;
+      };
+
+      const parsedUnits = parseBeyondMarkdown(content);
+      const romanNums = ["I", "II", "III", "IV", "V"];
+      
+      let unitsHtml = '';
+      parsedUnits.forEach((unit, uIdx) => {
+        const roman = romanNums[uIdx] || String(uIdx + 1);
+        unitsHtml += `
+          <div class="unit-container" style="page-break-inside: avoid; margin-bottom: 12px;">
+            <div class="unit-title" style="text-align: center; font-weight: bold; font-size: 11pt; margin-top: 15px; margin-bottom: 4px; text-transform: uppercase;">UNIT ${roman} – ${unit.title.toUpperCase()}</div>
+            <div class="beyond-label" style="font-weight: bold; font-size: 11pt; margin-bottom: 4px;">Beyond-the-Syllabus Topics:</div>
+            <div class="topics-list">
+              ${unit.topics.map(t => `
+                <div class="topic-item" style="margin-bottom: 4px; text-align: justify; font-size: 11pt;">
+                  <span class="topic-num-name" style="font-weight: bold;">${t.num}. ${t.name}</span>
+                  <span class="topic-divider">–</span>
+                  <span class="topic-desc">${t.desc}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      const staffName = subject.staffName || 'R.ASHA';
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${docTitle}</title>
+            <style>
+              @page { size: A4; margin: 2cm 1.5cm; }
+              body { font-family: 'Times New Roman', Times, serif; color: #000; margin: 0; padding: 0; font-size: 11pt; line-height: 1.4; }
+              @media print { body { padding: 0; } }
+            </style>
+          </head>
+          <body>
+            <!-- College Header -->
+            <div class="header-container" style="text-align: center; margin-bottom: 15px;">
+              <div class="college-name" style="font-size: 14pt; font-weight: bold; margin-bottom: 2px;">SRI SHANMUGHA COLLEGE OF ENGINEERING AND TECHNOLOGY</div>
+              <div class="dept-name" style="font-size: 12pt; font-weight: bold; margin-bottom: 2px;">DEPARTMENT OF ${branch.toUpperCase()}</div>
+              <div class="doc-title" style="font-size: 12pt; font-weight: bold; margin-bottom: 2px;">Content Beyond Syllabus</div>
+              <div class="academic-year" style="font-size: 11pt; font-weight: bold; margin-bottom: 10px;">Academic Year (${academicYear})</div>
+            </div>
+
+            <!-- Metadata Details -->
+            <table class="meta-table" style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11pt;">
+              <tr>
+                <td style="font-weight: bold; width: 220px; padding: 3px 0; vertical-align: top;">Name of the Faculty :</td>
+                <td style="padding: 3px 0; vertical-align: top;">${staffName}</td>
+              </tr>
+              <tr>
+                <td style="font-weight: bold; padding: 3px 0; vertical-align: top;">Subject Code / Subject Name :</td>
+                <td style="padding: 3px 0; vertical-align: top;">${subject.code} / ${subject.name}</td>
+              </tr>
+              <tr>
+                <td style="font-weight: bold; padding: 3px 0; vertical-align: top;">Year / Semester :</td>
+                <td style="padding: 3px 0; vertical-align: top;">${yearSem}</td>
+              </tr>
+              <tr>
+                <td style="font-weight: bold; padding: 3px 0; vertical-align: top;">Batch :</td>
+                <td style="padding: 3px 0; vertical-align: top;">${batchStr}</td>
+              </tr>
+            </table>
+
+            <!-- Content Area -->
+            <div class="content-area">
+              ${unitsHtml}
+            </div>
+
+            <!-- Footer Sign-off -->
+            <div class="footer-signoff" style="margin-top: 50px; display: flex; justify-content: space-between; font-weight: bold; font-size: 11pt; page-break-inside: avoid;">
+              <div>COURSE INSTRUCTOR</div>
+              <div>HOD</div>
+            </div>
+            
+            <script>
+              window.onload = function() { window.print(); };
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
     } else {
       // === GENERIC PDF for non-CIA tabs ===
       const formattedHtml = renderMarkdownToHtml(content);
@@ -502,7 +659,209 @@ const CourseContent = () => {
 
     } catch (error) {
       console.error('Error exporting template-driven Word document:', error);
-      alert('Failed to download official formatted document. Is the backend running?');
+      setAlertModal({
+        isOpen: true,
+        title: 'Download Failed',
+        message: 'Failed to download official formatted document. Is the backend running?'
+      });
+    }
+  };
+
+  const handleExportGoogleForm = async () => {
+    setIsGeneratingScript(true);
+    setShowFormModal(true);
+    setIsCopied(false);
+    try {
+      const response = await fetch('http://localhost:5000/api/export-google-form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subjectCode: subject.code,
+          subjectName: subject.name,
+          content: content
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate Google Form script');
+      }
+      
+      const data = await response.json();
+      if (data.success) {
+        setAppsScriptCode(data.script);
+      } else {
+        throw new Error(data.error || 'Failed to generate script');
+      }
+    } catch (error) {
+      console.error("Error generating Google Form script:", error);
+      setAppsScriptCode(`// Error: Failed to generate script.\n// Details: ${error.message}\n// Please make sure the backend is running.`);
+    } finally {
+      setIsGeneratingScript(false);
+    }
+  };
+  
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(appsScriptCode);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+  
+  const handleDownloadScript = () => {
+    const blob = new Blob([appsScriptCode], { type: 'text/javascript' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${subject.code}_GoogleFormQuiz.gs`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const executeDirectCreation = async (token) => {
+    setDirectFormState({
+      status: 'creating',
+      message: 'Analyzing AI-generated quiz questions & structures...',
+      error: '',
+      editUrl: '',
+      responderUri: ''
+    });
+    
+    try {
+      const progressMessages = [
+        'Creating a new, empty Form on your Google Account...',
+        'Converting MCQs to Google Forms compatible schemas...',
+        'Injecting Name & Register Number required metadata fields...',
+        'Adding 15 structured MCQs with choices and correct answers...',
+        'Enabling Quiz Mode, setting 2 points per MCQ, and finalizing...'
+      ];
+      
+      let messageIndex = 0;
+      const intervalId = setInterval(() => {
+        if (messageIndex < progressMessages.length) {
+          setDirectFormState(prev => {
+            if (prev.status === 'creating') {
+              return { ...prev, message: progressMessages[messageIndex++] };
+            }
+            return prev;
+          });
+        }
+      }, 1500);
+      
+      const response = await fetch('http://localhost:5000/api/create-google-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          accessToken: token,
+          subjectCode: subject.code,
+          subjectName: subject.name,
+          content: content
+        })
+      });
+      
+      clearInterval(intervalId);
+      
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.details || data.error || 'Failed to create Google Form directly.');
+      }
+      
+      setDirectFormState({
+        status: 'success',
+        message: 'Successfully generated and published your Google Form Quiz!',
+        error: '',
+        editUrl: data.editUrl,
+        responderUri: data.responderUri
+      });
+      
+      window.open(data.editUrl, '_blank');
+      
+    } catch (err) {
+      console.error('Execution creation failed:', err);
+      setDirectFormState({
+        status: 'error',
+        message: '',
+        error: err.message || 'Failed to complete direct Google Form creation.',
+        editUrl: '',
+        responderUri: ''
+      });
+    }
+  };
+
+  const handleDirectCreateForm = async () => {
+    setDirectFormState({
+      status: 'auth',
+      message: 'Initializing Google Sign-in connection...',
+      error: '',
+      editUrl: '',
+      responderUri: ''
+    });
+    
+    try {
+      const configRes = await fetch('http://localhost:5000/api/auth/config');
+      const configData = await configRes.json();
+      
+      if (!configRes.ok || !configData.success || !configData.googleClientId) {
+        throw new Error('Could not retrieve Google Client ID from backend server.');
+      }
+      
+      const clientId = configData.googleClientId;
+      
+      setDirectFormState(prev => ({
+        ...prev,
+        message: 'Opening Google authorization prompt for Forms & Drive access...'
+      }));
+      
+      if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
+        throw new Error('Google Identity Services SDK is not loaded. Please refresh the page.');
+      }
+      
+      const tokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: 'https://www.googleapis.com/auth/forms.body https://www.googleapis.com/auth/drive.file',
+        callback: async (tokenResponse) => {
+          if (tokenResponse.error) {
+            console.error('Google authorization error:', tokenResponse);
+            setDirectFormState({
+              status: 'error',
+              message: '',
+              error: `Authorization failed: ${tokenResponse.error_description || tokenResponse.error}`,
+              editUrl: '',
+              responderUri: ''
+            });
+            return;
+          }
+          
+          if (tokenResponse.access_token) {
+            const token = tokenResponse.access_token;
+            await executeDirectCreation(token);
+          } else {
+            throw new Error('No access token returned from Google authentication.');
+          }
+        },
+        error_callback: (err) => {
+          console.error('GIS Error:', err);
+          setDirectFormState({
+            status: 'error',
+            message: '',
+            error: `Google Identity Services error: ${err.message || JSON.stringify(err)}`,
+            editUrl: '',
+            responderUri: ''
+          });
+        }
+      });
+      
+      tokenClient.requestAccessToken();
+      
+    } catch (err) {
+      console.error('Direct Form Creation error:', err);
+      setDirectFormState({
+        status: 'error',
+        message: '',
+        error: err.message || 'An unexpected error occurred during direct Form creation.',
+        editUrl: '',
+        responderUri: ''
+      });
     }
   };
 
@@ -563,6 +922,29 @@ const CourseContent = () => {
                   <button className="btn btn-secondary" onClick={handleExportWord}>
                     <Download size={18} /> Word
                   </button>
+                  {activeTab === 'quiz' && (
+                    <button 
+                      className="btn" 
+                      onClick={handleDirectCreateForm} 
+                      style={{ 
+                        backgroundColor: '#673ab7', 
+                        color: '#ffffff', 
+                        border: 'none',
+                        boxShadow: '0 4px 14px 0 rgba(103, 58, 183, 0.39)',
+                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(103, 58, 183, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 14px 0 rgba(103, 58, 183, 0.39)';
+                      }}
+                    >
+                      <Sparkles size={18} /> Create Google Form
+                    </button>
+                  )}
                 </>
               )}
               <button className="btn btn-primary" onClick={handleGenerate} disabled={isGenerating}>
@@ -599,6 +981,352 @@ const CourseContent = () => {
           </div>
         </div>
       </div>
+
+      {/* Google Forms Apps Script Modal */}
+      {showFormModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+          animation: 'fade-in 0.2s ease-out'
+        }}>
+          <div className="glass-card" style={{
+            width: '800px', maxHeight: '90vh', display: 'flex', flexDirection: 'column',
+            padding: '2rem', border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-light)', paddingBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4f46e5' }}>
+                <Sparkles size={24} /> Create Google Form Quiz
+              </h3>
+              <button className="btn btn-secondary" style={{ padding: '0.25rem 0.75rem' }} onClick={() => setShowFormModal(false)}>
+                ✕ Close
+              </button>
+            </div>
+            
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingRight: '0.5rem' }}>
+              
+              {/* Step-by-Step Instructions */}
+              <div style={{ padding: '1rem', backgroundColor: 'rgba(79, 70, 229, 0.05)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(79, 70, 229, 0.1)' }}>
+                <h4 style={{ fontWeight: 600, color: '#4f46e5', marginBottom: '0.75rem' }}>How to create your Google Form instantly:</h4>
+                <ol style={{ paddingLeft: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.95rem', color: '#334155', lineHeight: '1.5' }}>
+                  <li>Click <strong>Copy Code</strong> below to copy the automation script to your clipboard.</li>
+                  <li>Open <a href="https://script.google.com" target="_blank" rel="noopener noreferrer" style={{ color: '#4f46e5', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '2px' }}>Google Apps Script <ExternalLink size={12} /></a> (or go to Google Drive &gt; New &gt; More &gt; Google Apps Script).</li>
+                  <li>Delete any existing template code in the editor, and <strong>paste</strong> the copied code.</li>
+                  <li>Click the <strong>Save</strong> (disk) icon, then click the <strong>Run</strong> (triangle) button at the top.</li>
+                  <li>Click "Review Permissions" to authorize the script (it's completely secure and runs solely on your own Google Account).</li>
+                  <li>The quiz will be created in your Google Drive! The direct links will be printed in the <strong>Execution Log</strong> at the bottom of the editor.</li>
+                </ol>
+              </div>
+
+              {/* Code Editor Preview */}
+              <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: '300px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1e293b', borderTopLeftRadius: 'var(--radius-sm)', borderTopRightRadius: 'var(--radius-sm)', padding: '0.5rem 1rem', borderBottom: '1px solid #334155' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#94a3b8', fontSize: '0.85rem', fontFamily: 'monospace' }}>
+                    <FileCode size={14} /> {subject.code}_google_form.gs
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button className="btn" disabled={isGeneratingScript} style={{ padding: '0.2rem 0.6rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#334155', color: '#f8fafc', border: 'none' }} onClick={handleCopyCode}>
+                      {isCopied ? <><Check size={12} style={{ color: '#10b981' }} /> Copied</> : <><Copy size={12} /> Copy Code</>}
+                    </button>
+                    <button className="btn" disabled={isGeneratingScript} style={{ padding: '0.2rem 0.6rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#334155', color: '#f8fafc', border: 'none' }} onClick={handleDownloadScript}>
+                      <Download size={12} /> Download .gs
+                    </button>
+                  </div>
+                </div>
+                
+                <div style={{ flex: 1, backgroundColor: '#0f172a', borderBottomLeftRadius: 'var(--radius-sm)', borderBottomRightRadius: 'var(--radius-sm)', padding: '1rem', overflow: 'hidden', display: 'flex' }}>
+                  {isGeneratingScript ? (
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                      <RefreshCw size={32} className="spinner" style={{ animation: 'spin 1.5s linear infinite', marginBottom: '0.5rem' }} />
+                      <span>Parsing questions and composing automation script...</span>
+                    </div>
+                  ) : (
+                    <pre style={{ flex: 1, overflow: 'auto', margin: 0, fontFamily: 'monospace', fontSize: '0.85rem', color: '#38bdf8', whiteSpace: 'pre-wrap', textAlign: 'left', lineHeight: '1.4' }}>
+                      {appsScriptCode}
+                    </pre>
+                  )}
+                </div>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Premium Direct Google Forms Status/Success Modal */}
+      {directFormState.status !== 'idle' && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(10px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1050,
+          animation: 'fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}>
+          {/* CSS Animation Keyframes for the Premium Modal */}
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes progress-bar {
+              0% { left: -30%; width: 30%; }
+              50% { left: 30%; width: 40%; }
+              100% { left: 100%; width: 30%; }
+            }
+            @keyframes scale-up {
+              0% { transform: scale(0.7); opacity: 0; }
+              100% { transform: scale(1); opacity: 1; }
+            }
+            @keyframes pulse {
+              0% { transform: scale(1); opacity: 0.8; }
+              50% { transform: scale(1.1); opacity: 1; }
+              100% { transform: scale(1); opacity: 0.8; }
+            }
+            @keyframes shake {
+              0%, 100% { transform: translateX(0); }
+              20%, 60% { transform: translateX(-6px); }
+              40%, 80% { transform: translateX(6px); }
+            }
+          `}} />
+          <div className="glass-card" style={{
+            width: '550px',
+            padding: '2.5rem',
+            border: '1px solid rgba(255,255,255,0.45)',
+            boxShadow: '0 25px 50px -12px rgba(103, 58, 183, 0.25)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            borderRadius: 'var(--radius-lg)'
+          }}>
+            
+            {/* 1. AUTHENTICATING / CREATING (Loading State) */}
+            {(directFormState.status === 'auth' || directFormState.status === 'creating') && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', width: '100%' }}>
+                <div style={{ position: 'relative', width: '80px', height: '80px' }}>
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                    borderRadius: '50%', border: '4px solid rgba(103, 58, 183, 0.1)',
+                    borderTopColor: '#673ab7',
+                    animation: 'spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite'
+                  }} />
+                  <div style={{
+                    position: 'absolute', top: '10px', left: '10px', right: '10px', bottom: '10px',
+                    borderRadius: '50%', border: '4px solid rgba(103, 58, 183, 0.05)',
+                    borderBottomColor: '#ab47bc',
+                    animation: 'spin 0.8s linear infinite reverse'
+                  }} />
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#673ab7'
+                  }}>
+                    <Sparkles size={28} className="pulse" style={{ animation: 'pulse 1.5s ease-in-out infinite' }} />
+                  </div>
+                </div>
+                
+                <h3 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#1e293b', marginTop: '0.5rem' }}>
+                  Creating Google Form Quiz
+                </h3>
+                
+                <p style={{
+                  fontSize: '1rem',
+                  color: 'var(--text-secondary)',
+                  minHeight: '48px',
+                  lineHeight: '1.5',
+                  padding: '0 1rem',
+                  transition: 'opacity 0.3s ease'
+                }}>
+                  {directFormState.message}
+                </p>
+                
+                <div style={{
+                  width: '100%',
+                  height: '6px',
+                  backgroundColor: 'rgba(103, 58, 183, 0.1)',
+                  borderRadius: '3px',
+                  overflow: 'hidden',
+                  position: 'relative'
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    height: '100%',
+                    backgroundColor: '#673ab7',
+                    borderRadius: '3px',
+                    width: '60%',
+                    left: 0,
+                    animation: 'progress-bar 2.5s ease-in-out infinite'
+                  }} />
+                </div>
+                
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  This will launch your browser auth popup if not already verified.
+                </span>
+              </div>
+            )}
+
+            {/* 2. SUCCESS STATE */}
+            {directFormState.status === 'success' && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem', width: '100%' }}>
+                <div style={{
+                  width: '72px', height: '72px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                  border: '2px solid rgba(16, 185, 129, 0.3)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#10b981',
+                  animation: 'scale-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                }}>
+                  <Check size={38} strokeWidth={3} />
+                </div>
+                
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>
+                  Quiz Ready & Published!
+                </h3>
+                
+                <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', padding: '0 0.5rem', lineHeight: '1.5' }}>
+                  The Google Form has been directly built inside your Google Drive. 
+                  It includes the complete MCQ questions and answer key automatically graded!
+                </p>
+                
+                <div style={{
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
+                  marginTop: '1rem',
+                  marginBottom: '1rem'
+                }}>
+                  <a 
+                    href={directFormState.editUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="btn btn-primary"
+                    style={{ 
+                      backgroundColor: '#673ab7', 
+                      boxShadow: '0 4px 14px 0 rgba(103, 58, 183, 0.39)',
+                      width: '100%',
+                      textDecoration: 'none'
+                    }}
+                  >
+                    Open in Google Forms <ExternalLink size={16} style={{ marginLeft: '4px' }} />
+                  </a>
+                  
+                  <a 
+                    href={directFormState.responderUri} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary"
+                    style={{ width: '100%', textDecoration: 'none' }}
+                  >
+                    View Student Live Link <ExternalLink size={16} style={{ marginLeft: '4px' }} />
+                  </a>
+                </div>
+                
+                <button 
+                  className="btn btn-secondary" 
+                  style={{ 
+                    padding: '0.5rem 1.5rem', 
+                    borderRadius: 'var(--radius-full)',
+                    fontSize: '0.9rem',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    boxShadow: 'none',
+                    color: 'var(--text-secondary)'
+                  }} 
+                  onClick={() => setDirectFormState({ status: 'idle', message: '', error: '', editUrl: '', responderUri: '' })}
+                >
+                  ✕ Close & Return
+                </button>
+              </div>
+            )}
+
+            {/* 3. ERROR STATE */}
+            {directFormState.status === 'error' && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem', width: '100%' }}>
+                <div style={{
+                  width: '72px', height: '72px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  border: '2px solid rgba(239, 68, 68, 0.3)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#ef4444',
+                  animation: 'shake 0.5s ease'
+                }}>
+                  <span style={{ fontSize: '2.2rem', fontWeight: 'bold', fontFamily: 'inherit' }}>!</span>
+                </div>
+                
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>
+                  Creation Failed
+                </h3>
+                
+                <div style={{
+                  backgroundColor: 'rgba(239, 68, 68, 0.04)',
+                  border: '1px solid rgba(239, 68, 68, 0.1)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '1rem',
+                  fontSize: '0.9rem',
+                  color: '#dc2626',
+                  fontFamily: 'monospace',
+                  width: '100%',
+                  maxHeight: '150px',
+                  overflowY: 'auto',
+                  textAlign: 'left',
+                  whiteSpace: 'pre-wrap'
+                }}>
+                  {directFormState.error}
+                </div>
+                
+                <div style={{ display: 'flex', gap: '1rem', width: '100%', marginTop: '1rem' }}>
+                  <button 
+                    className="btn btn-primary" 
+                    style={{ flex: 1, backgroundColor: '#673ab7', border: 'none' }}
+                    onClick={handleDirectCreateForm}
+                  >
+                    <RefreshCw size={16} /> Try Again
+                  </button>
+                  <button 
+                    className="btn btn-secondary" 
+                    style={{ flex: 1 }}
+                    onClick={() => setDirectFormState({ status: 'idle', message: '', error: '', editUrl: '', responderUri: '' })}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
+      {/* Premium Alert Modal */}
+      {alertModal.isOpen && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999,
+          animation: 'fade-in 0.2s ease-out'
+        }}>
+          <div className="glass-card" style={{
+            width: '450px',
+            padding: '2.5rem',
+            border: '1px solid rgba(255,255,255,0.45)',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+            textAlign: 'center',
+            borderRadius: 'var(--radius-lg)'
+          }}>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem' }}>
+              {alertModal.title}
+            </h3>
+            <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: '1.5' }}>
+              {alertModal.message}
+            </p>
+            <button 
+              className="btn btn-primary" 
+              style={{ width: '100%' }}
+              onClick={() => setAlertModal({ isOpen: false, title: '', message: '' })}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -483,6 +483,60 @@ function generateDocument(payload) {
     // 4. Non-CIA types or fallback: Try generic template-based rendering
     const hasDocxTemplate = templateService.hasTemplate(type);
     if (hasDocxTemplate && !isCIA) {
+      const isQBankType = (type === 'qbank' || type === 'quiz' || type === 'assignment');
+      
+      if (isQBankType || type === 'beyond') {
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          const { execFileSync } = require('child_process');
+          
+          const templatePath = path.resolve(templateService.getTemplatePath(type));
+          const scriptName = type === 'beyond' ? 'beyondGenerator.py' : 'qbankGenerator.py';
+          const scriptPath = path.resolve(path.join(__dirname, scriptName));
+          
+          console.log(`Using high-fidelity Python generator for type ${type} using script ${scriptName}...`);
+          
+          const uniqueId = `${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+          const inputJsonPath = path.resolve(path.join(__dirname, '..', 'data', `qbank_in_${uniqueId}.json`));
+          const outputDocxPath = path.resolve(path.join(__dirname, '..', 'data', `qbank_out_${uniqueId}.docx`));
+          
+          const payloadData = {
+            subjectCode,
+            subjectName,
+            staffName,
+            departmentName: displayDept,
+            year,
+            semester,
+            regulation,
+            content
+          };
+          
+          fs.writeFileSync(inputJsonPath, JSON.stringify(payloadData, null, 2), 'utf8');
+          
+          console.log(`Running Python script: python "${scriptPath}" "${templatePath}" "${inputJsonPath}" "${outputDocxPath}"`);
+          execFileSync('python', [scriptPath, templatePath, inputJsonPath, outputDocxPath]);
+          
+          if (fs.existsSync(outputDocxPath)) {
+            const outputBuffer = fs.readFileSync(outputDocxPath);
+            // clean up output file
+            try { fs.unlinkSync(outputDocxPath); } catch (e) {}
+            
+            console.log(`Successfully generated dynamic high-fidelity DOCX via Python: ${docName}.docx`);
+            return {
+              buffer: outputBuffer,
+              filename: `${docName}.docx`,
+              isFallback: false
+            };
+          } else {
+            console.warn("Python execution finished but output file not found. Falling back to Docxtemplater...");
+          }
+        } catch (pyErr) {
+          console.error(`High-fidelity Python generation failed for type ${type}. Error:`, pyErr.message);
+          console.log("Falling back to standard Docxtemplater rendering...");
+        }
+      }
+
       console.log(`Loading generic DOCX template for type ${type}...`);
       const templateBuffer = templateService.getTemplateBuffer(type);
       
