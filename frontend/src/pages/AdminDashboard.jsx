@@ -57,6 +57,11 @@ const AdminDashboard = () => {
     onConfirm: null
   });
 
+  // Advanced Filtering System state variables
+  const [filterType, setFilterType] = useState('all');
+  const [filterDept, setFilterDept] = useState('all');
+  const [filterReg, setFilterReg] = useState('all');
+
   // Dynamically apply fixed viewport dashboard layout class
   useEffect(() => {
     document.body.classList.add('dashboard-layout');
@@ -312,14 +317,23 @@ const AdminDashboard = () => {
     }
   };
 
-  // Filter history logs
+  // Filter history logs (Unified Multi-criteria search and filter match logic)
   const filteredGenerations = generations.filter(gen => {
     const subjNameStr = typeof gen.subjectName === 'object' ? gen.subjectName.name : gen.subjectName;
-    return (
+    const matchesSearch = (
       gen.subjectCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       subjNameStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
       gen.generatedBy.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const matchesType = filterType === 'all' || gen.type === filterType;
+    const matchesDept = filterDept === 'all' || gen.departmentId === filterDept;
+
+    const cleanGenReg = gen.regulation ? gen.regulation.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
+    const cleanFilterReg = filterReg.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    const matchesReg = filterReg === 'all' || cleanGenReg === cleanFilterReg;
+
+    return matchesSearch && matchesType && matchesDept && matchesReg;
   });
 
   return (
@@ -684,18 +698,109 @@ const AdminDashboard = () => {
                 </button>
               </div>
 
-              {/* Search Bar */}
-              <div style={{ display: 'flex', gap: '0.75rem', maxWidth: '500px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'white', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-sm)', padding: '0.5rem 1rem', flex: 1 }}>
-                  <Search size={18} color="var(--text-muted)" style={{ marginRight: '0.5rem' }} />
+              {/* Search & Advanced Filtering Controls */}
+              <div style={{ 
+                display: 'flex', 
+                gap: '0.75rem', 
+                alignItems: 'center', 
+                flexWrap: 'wrap',
+                width: '100%',
+                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                padding: '0.6rem 0.85rem',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border-glass)'
+              }}>
+                {/* Search input field */}
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  backgroundColor: 'white', 
+                  border: '1px solid var(--border-light)', 
+                  borderRadius: 'var(--radius-sm)', 
+                  padding: '0.4rem 0.75rem', 
+                  flex: '2 1 240px'
+                }}>
+                  <Search size={16} color="var(--text-muted)" style={{ marginRight: '0.5rem' }} />
                   <input 
                     type="text" 
                     placeholder="Search by code, subject title, or user..." 
-                    style={{ border: 'none', outline: 'none', width: '100%', fontSize: '0.9rem' }}
+                    style={{ border: 'none', outline: 'none', width: '100%', fontSize: '0.85rem' }}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
+
+                {/* Type Filter */}
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  style={{
+                    padding: '0.4rem 0.75rem',
+                    fontSize: '0.85rem',
+                    flex: '1 1 120px',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'white',
+                    border: '1px solid var(--border-light)',
+                    color: 'var(--text-primary)',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="all">All Types</option>
+                  <option value="cia1">CIA 1</option>
+                  <option value="cia2">CIA 2</option>
+                  <option value="quiz">Quiz</option>
+                  <option value="qbank">Question Bank</option>
+                  <option value="assignment">Assignment</option>
+                  <option value="hots">HOTS</option>
+                  <option value="beyond">Beyond Syllabus</option>
+                </select>
+
+                {/* Department Filter */}
+                <select
+                  value={filterDept}
+                  onChange={(e) => setFilterDept(e.target.value)}
+                  style={{
+                    padding: '0.4rem 0.75rem',
+                    fontSize: '0.85rem',
+                    flex: '1 1 140px',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'white',
+                    border: '1px solid var(--border-light)',
+                    color: 'var(--text-primary)',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="all">All Departments</option>
+                  <option value="AI_DS">AI_DS</option>
+                  <option value="CSE">CSE</option>
+                  <option value="IT">IT</option>
+                  <option value="ECE">ECE</option>
+                  <option value="MECH">MECH</option>
+                  <option value="CIVIL">CIVIL</option>
+                  <option value="BME">BME</option>
+                  <option value="CYBER">CYBER</option>
+                </select>
+
+                {/* Regulation Filter */}
+                <select
+                  value={filterReg}
+                  onChange={(e) => setFilterReg(e.target.value)}
+                  style={{
+                    padding: '0.4rem 0.75rem',
+                    fontSize: '0.85rem',
+                    flex: '1 1 130px',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'white',
+                    border: '1px solid var(--border-light)',
+                    color: 'var(--text-primary)',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="all">All Regulations</option>
+                  <option value="R2021">R2021</option>
+                  <option value="R2023">R2023</option>
+                  <option value="R2025">R2025</option>
+                </select>
               </div>
 
               {loadingGens ? (
@@ -708,40 +813,80 @@ const AdminDashboard = () => {
               ) : (
                 <div className="dashboard-scroll-content">
                   
-                  {/* Generation Table */}
-                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                  {/* Highly Compact & Responsive Generation Table */}
+                  <table className="responsive-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
                     <thead>
                       <tr style={{ borderBottom: '2px solid var(--border-light)', color: 'var(--text-secondary)' }}>
-                        <th style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>Subject</th>
-                        <th style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>Scope</th>
-                        <th style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>Type</th>
-                        <th style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>Generated By</th>
-                        <th style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>Word Count</th>
-                        <th style={{ padding: '0.75rem 1rem', fontWeight: 600, textAlign: 'center' }}>Details</th>
+                        <th style={{ padding: '0.5rem 0.75rem', fontWeight: 600, width: '26%' }}>Subject</th>
+                        <th style={{ padding: '0.5rem 0.75rem', fontWeight: 600, width: '24%' }}>Scope</th>
+                        <th style={{ padding: '0.5rem 0.75rem', fontWeight: 600, width: '20%' }}>Type</th>
+                        <th style={{ padding: '0.5rem 0.75rem', fontWeight: 600, width: '14%' }}>Generated By</th>
+                        <th style={{ padding: '0.5rem 0.75rem', fontWeight: 600, width: '10%' }}>Word Count</th>
+                        <th style={{ padding: '0.5rem 0.75rem', fontWeight: 600, width: '6%', textAlign: 'center' }}>Details</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredGenerations.map(gen => {
                         const sName = typeof gen.subjectName === 'object' ? gen.subjectName.name : gen.subjectName;
                         return (
-                          <tr key={gen.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                            <td style={{ padding: '1rem' }}>
-                              <div style={{ fontWeight: 700 }}>{gen.subjectCode}</div>
-                              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{sName}</div>
+                          <tr key={gen.id} className="premium-table-row" style={{ borderBottom: '1px solid var(--border-light)' }}>
+                            {/* Subject Column */}
+                            <td data-label="Subject" style={{ padding: '0.4rem 0.75rem', verticalAlign: 'middle' }}>
+                              <div style={{ fontWeight: 700, fontSize: '0.85rem', lineHeight: '1.2' }}>{gen.subjectCode}</div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: '1.2', marginTop: '1px' }}>{sName}</div>
                             </td>
-                            <td style={{ padding: '1rem' }}>
-                              <div>{gen.departmentId} - Sem {gen.semester}</div>
-                              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Reg: {gen.regulation}</div>
+                            {/* Scope Column */}
+                            <td data-label="Scope" style={{ padding: '0.4rem 0.75rem', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                              <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)' }}>
+                                {gen.departmentId} <span style={{ color: 'var(--text-muted)', margin: '0 2px' }}>•</span> Sem {gen.semester} <span style={{ color: 'var(--text-muted)', margin: '0 2px' }}>•</span> {gen.regulation}
+                              </div>
                             </td>
-                            <td style={{ padding: '1rem' }}><span className="badge">{getDocTypeLabel(gen.type)}</span></td>
-                            <td style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.35rem', border: 'none' }}>
-                              <User size={14} color="var(--text-muted)" /> <span style={{ fontWeight: 600 }}>{gen.generatedBy}</span>
+                            {/* Type Column */}
+                            <td data-label="Type" style={{ padding: '0.4rem 0.75rem', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                              <span className="badge" style={{ 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                height: '22px', 
+                                minWidth: '100px', 
+                                fontSize: '0.7rem', 
+                                textAlign: 'center', 
+                                whiteSpace: 'nowrap',
+                                lineHeight: '1',
+                                padding: '0 0.5rem',
+                                backgroundColor: '#e0e7ff',
+                                color: '#3730a3'
+                              }}>
+                                {getDocTypeLabel(gen.type)}
+                              </span>
                             </td>
-                            <td style={{ padding: '1rem' }}>{gen.wordCount} words</td>
-                            <td style={{ padding: '1rem', textAlign: 'center' }}>
+                            {/* Generated By Column */}
+                            <td data-label="Generated By" style={{ padding: '0.4rem 0.75rem', verticalAlign: 'middle' }}>
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-primary)', fontSize: '0.8rem' }}>
+                                <User size={13} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
+                                <span style={{ fontWeight: 500 }}>{gen.generatedBy}</span>
+                              </div>
+                            </td>
+                            {/* Word Count Column */}
+                            <td data-label="Word Count" style={{ padding: '0.4rem 0.75rem', verticalAlign: 'middle', whiteSpace: 'nowrap', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                              {gen.wordCount} words
+                            </td>
+                            {/* Details Column */}
+                            <td data-label="Details" style={{ padding: '0.4rem 0.75rem', verticalAlign: 'middle', textAlign: 'center', whiteSpace: 'nowrap' }}>
                               <button 
                                 className="btn btn-secondary" 
-                                style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
+                                style={{ 
+                                  padding: '0.2rem 0.6rem', 
+                                  fontSize: '0.75rem', 
+                                  height: '24px',
+                                  whiteSpace: 'nowrap',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  border: '1px solid var(--border-light)',
+                                  borderRadius: 'var(--radius-full)',
+                                  boxShadow: 'var(--shadow-sm)'
+                                }}
                                 onClick={() => setSelectedGen(gen)}
                               >
                                 View File
@@ -752,7 +897,6 @@ const AdminDashboard = () => {
                       })}
                     </tbody>
                   </table>
-
                 </div>
               )}
             </div>

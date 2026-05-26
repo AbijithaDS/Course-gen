@@ -291,3 +291,74 @@ button {
   background: #94a3b8;
 }
 
+/* Premium row hover interaction */
+.premium-table-row {
+  transition: transform 0.20s ease, background-color 0.20s ease, box-shadow 0.20s ease;
+  position: relative;
+  will-change: transform, background-color;
+}
+
+.premium-table-row:hover {
+  background-color: rgba(255, 255, 255, 0.45) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.06);
+}
+
+/* Responsive Table Adaptations */
+@media (max-width: 1024px) {
+  .dashboard-scroll-content {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Hide standard table elements */
+  .responsive-table, 
+  .responsive-table thead, 
+  .responsive-table tbody, 
+  .responsive-table th, 
+  .responsive-table td, 
+  .responsive-table tr { 
+    display: block; 
+  }
+  
+  .responsive-table thead {
+    display: none; /* Hide headers on mobile cards */
+  }
+  
+  .responsive-table tr {
+    margin-bottom: 1rem;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--border-glass) !important;
+    border-radius: var(--radius-sm);
+    padding: 0.75rem;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .responsive-table td {
+    border: none !important;
+    padding: 0.35rem 0 !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px dashed rgba(0,0,0,0.05) !important;
+  }
+  
+  .responsive-table td:last-child {
+    border-bottom: none !important;
+    margin-top: 0.5rem;
+    justify-content: center;
+  }
+
+  /* Insert labels on mobile cards dynamically */
+  .responsive-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    margin-right: 1rem;
+  }
+}
+
+
