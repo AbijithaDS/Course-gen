@@ -117,14 +117,18 @@ exports.addRegulation = (req, res) => {
   res.status(201).json({ success: true, regulation: newReg });
 };
 
+const isOwner = (name) => {
+  if (!name) return false;
+  const lowerName = name.toLowerCase();
+  return lowerName === 'system owner' || 
+         lowerName === 'system_owner' || 
+         db.hashPassword(lowerName) === config.SYSTEM_OWNER_EMAIL_HASH;
+};
+
 // --- GENERATION LOGS & STATS ---
 exports.getGenerations = (req, res) => {
   const generations = db.readData('generatedContent');
-  const filtered = generations.filter(g => 
-    g.generatedBy !== 'System Owner' && 
-    g.generatedBy !== 'SYSTEM_OWNER' &&
-    g.generatedBy !== config.SYSTEM_OWNER_EMAIL
-  );
+  const filtered = generations.filter(g => !isOwner(g.generatedBy));
   // Return reversed to show newest generations first
   res.status(200).json({ success: true, generations: [...filtered].reverse() });
 };
@@ -132,11 +136,7 @@ exports.getGenerations = (req, res) => {
 exports.getStats = (req, res) => {
   try {
     const rawGenerations = db.readData('generatedContent');
-    const generations = rawGenerations.filter(g => 
-      g.generatedBy !== 'System Owner' && 
-      g.generatedBy !== 'SYSTEM_OWNER' &&
-      g.generatedBy !== config.SYSTEM_OWNER_EMAIL
-    );
+    const generations = rawGenerations.filter(g => !isOwner(g.generatedBy));
     const departments = db.readData('departments');
     
     // Total generations count
@@ -210,8 +210,8 @@ exports.getUsers = (req, res) => {
     const sanitizedUsers = users
       .filter(u => 
         u.role !== 'SYSTEM_OWNER' && 
-        u.username !== 'System Owner' &&
-        u.email !== config.SYSTEM_OWNER_EMAIL
+        !isOwner(u.username) &&
+        !isOwner(u.email)
       )
       .map(u => {
         const { password, ...safeUser } = u;
