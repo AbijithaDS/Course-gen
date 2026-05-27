@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { Lock, User, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ const Login = () => {
     
     try {
       console.log('Posting Google Credential to backend verification endpoint...');
-      const res = await fetch('http://localhost:5000/api/auth/google', {
+      const res = await fetch(`${API_BASE_URL}/api/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken: response.credential })
@@ -50,7 +51,7 @@ const Login = () => {
     
     const initGoogleSignIn = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/auth/config');
+        const res = await fetch(`${API_BASE_URL}/api/auth/config`);
         const data = await res.json();
         
         if (res.ok && data.success && data.googleClientId) {
@@ -106,7 +107,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })

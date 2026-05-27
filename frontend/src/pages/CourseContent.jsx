@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { Settings, Sparkles, Download, Edit3, Save, RefreshCw, FileText, ArrowLeft, LogOut, Copy, Check, ExternalLink, FileCode } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const TABS = [
   { id: 'cia1', label: 'CIA 1' },
@@ -70,7 +71,7 @@ const CourseContent = () => {
     setIsGenerating(true);
     setContent('');
     try {
-      const response = await fetch('http://localhost:5000/api/generate', {
+      const response = await fetch(`${API_BASE_URL}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -819,7 +820,7 @@ const CourseContent = () => {
   const handleExportWord = async () => {
     try {
       console.log('Requesting template-driven Word document from backend...');
-      const response = await fetch('http://localhost:5000/api/export', {
+      const response = await fetch(`${API_BASE_URL}/api/export`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -876,7 +877,7 @@ const CourseContent = () => {
     setShowFormModal(true);
     setIsCopied(false);
     try {
-      const response = await fetch('http://localhost:5000/api/export-google-form', {
+      const response = await fetch(`${API_BASE_URL}/api/export-google-form`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -950,7 +951,7 @@ const CourseContent = () => {
         }
       }, 1500);
       
-      const response = await fetch('http://localhost:5000/api/create-google-form', {
+      const response = await fetch(`${API_BASE_URL}/api/create-google-form`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -1002,7 +1003,7 @@ const CourseContent = () => {
     });
     
     try {
-      const configRes = await fetch('http://localhost:5000/api/auth/config');
+      const configRes = await fetch(`${API_BASE_URL}/api/auth/config`);
       const configData = await configRes.json();
       
       if (!configRes.ok || !configData.success || !configData.googleClientId) {

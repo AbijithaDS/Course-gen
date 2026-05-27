@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
+import { API_BASE_URL } from '../config';
 import { 
   BarChart2, 
   Layers, 
@@ -91,7 +92,7 @@ const AdminDashboard = () => {
   const fetchStats = async () => {
     setLoadingStats(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/stats');
+      const res = await fetch(`${API_BASE_URL}/api/admin/stats`);
       const data = await res.json();
       if (res.ok && data.success) {
         setStats(data.stats);
@@ -106,7 +107,7 @@ const AdminDashboard = () => {
   const fetchGenerations = async () => {
     setLoadingGens(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/generations');
+      const res = await fetch(`${API_BASE_URL}/api/admin/generations`);
       const data = await res.json();
       if (res.ok && data.success) {
         setGenerations(data.generations);
@@ -121,7 +122,7 @@ const AdminDashboard = () => {
   const fetchDepartments = async () => {
     setLoadingDepts(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/departments');
+      const res = await fetch(`${API_BASE_URL}/api/admin/departments`);
       const data = await res.json();
       if (res.ok && data.success) {
         setDepartments(data.departments);
@@ -136,7 +137,7 @@ const AdminDashboard = () => {
   const fetchSubjects = async () => {
     setLoadingSubjs(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/subjects');
+      const res = await fetch(`${API_BASE_URL}/api/admin/subjects`);
       const data = await res.json();
       if (res.ok && data.success) {
         setSubjects(data.subjects);
@@ -150,7 +151,7 @@ const AdminDashboard = () => {
 
   const fetchRegulations = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/regulations');
+      const res = await fetch(`${API_BASE_URL}/api/admin/regulations`);
       const data = await res.json();
       if (res.ok && data.success) {
         setRegulations(data.regulations);
@@ -163,7 +164,7 @@ const AdminDashboard = () => {
   const fetchUsers = async () => {
     setLoadingUsers(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/users');
+      const res = await fetch(`${API_BASE_URL}/api/admin/users`);
       const data = await res.json();
       if (res.ok && data.success) {
         setUsers(data.users);
@@ -192,7 +193,7 @@ const AdminDashboard = () => {
     if (!newDeptId || !newDeptName) return;
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin/departments', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/departments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: newDeptId, name: newDeptName })
@@ -215,7 +216,7 @@ const AdminDashboard = () => {
   const executeDeleteDept = async (id) => {
     setConfirmModal(prev => ({ ...prev, isOpen: false }));
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/departments/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/departments/${id}`, {
         method: 'DELETE'
       });
       if (res.ok) {
@@ -246,7 +247,7 @@ const AdminDashboard = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin/subjects', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/subjects`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -273,7 +274,7 @@ const AdminDashboard = () => {
   const executeDeleteSubject = async (id) => {
     setConfirmModal(prev => ({ ...prev, isOpen: false }));
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/subjects/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/subjects/${id}`, {
         method: 'DELETE'
       });
       if (res.ok) {
@@ -343,7 +344,7 @@ const AdminDashboard = () => {
     setIsDownloadingDoc(true);
     try {
       const sName = typeof gen.subjectName === 'object' ? gen.subjectName.name : gen.subjectName;
-      const response = await fetch('http://localhost:5000/api/export', {
+      const response = await fetch(`${API_BASE_URL}/api/export`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

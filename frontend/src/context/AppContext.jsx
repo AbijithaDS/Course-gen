@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config';
 
 const AppContext = createContext();
 
@@ -30,7 +31,7 @@ export const AppProvider = ({ children }) => {
   const fetchDepartments = async () => {
     setLoadingDepts(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/departments');
+      const res = await fetch(`${API_BASE_URL}/api/admin/departments`);
       const data = await res.json();
       if (res.ok && data.success) {
         setDepartments(data.departments);
@@ -46,7 +47,7 @@ export const AppProvider = ({ children }) => {
   const fetchRegulations = async () => {
     setLoadingRegs(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/regulations');
+      const res = await fetch(`${API_BASE_URL}/api/admin/regulations`);
       const data = await res.json();
       if (res.ok && data.success) {
         setRegulations(data.regulations);
@@ -63,7 +64,7 @@ export const AppProvider = ({ children }) => {
     if (!deptId || !semNum) return;
     setLoadingSubjs(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/subjects?departmentId=${deptId}&semester=${semNum}`);
+      const res = await fetch(`${API_BASE_URL}/api/admin/subjects?departmentId=${deptId}&semester=${semNum}`);
       const data = await res.json();
       if (res.ok && data.success) {
         setSubjects(data.subjects);
