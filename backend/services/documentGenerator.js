@@ -22,7 +22,11 @@ function cleanAllTextOfCOK(text) {
     return puncMatch ? puncMatch[0] : '';
   });
   
-  return cleaned.replace(/\s+/g, ' ').trim();
+  return cleaned
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\r\n/g, '\n')
+    .replace(/\n\s*\n/g, '\n\n')
+    .trim();
 }
 
 /**
@@ -267,12 +271,18 @@ function resolveRegulation(regulation) {
 
 function compileHtmlWordFallback(data) {
   const formattedContent = data.content
-    .replace(/^### (.*$)/gim, '<h3 style="color:#4f46e5; margin-top:20px; font-size:14pt;">$1</h3>')
-    .replace(/^## (.*$)/gim, '<h2 style="color:#4f46e5; margin-top:25px; font-size:16pt;">$1</h2>')
-    .replace(/^# (.*$)/gim, '<h1 style="color:#4f46e5; margin-top:30px; font-size:18pt;">$1</h1>')
+    .replace(/^### (.*$)/gim, '<h3 style="color:#4f46e5; margin-top:20px; font-size:14pt; font-family:\'Times New Roman\';">$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2 style="color:#4f46e5; margin-top:25px; font-size:16pt; font-family:\'Times New Roman\';">$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1 style="color:#4f46e5; margin-top:30px; font-size:18pt; font-family:\'Times New Roman\';">$1</h1>')
     .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/gim, '<em>$1</em>')
-    .replace(/^- (.*$)/gim, '<li style="margin-left: 20px; margin-bottom: 5px;">$1</li>')
+    .replace(/^- (.*$)/gim, '<li style="margin-left: 20px; margin-bottom: 5px; font-family:\'Times New Roman\';">$1</li>')
+    // Format MCQ Options (lines starting with option indicators)
+    .replace(/^\s*([a-d][\)\.])\s*(.*)$/gim, '<div style="margin-left: 20px; color: #334155; margin-bottom: 3px; font-family:\'Times New Roman\';">$1 $2</div>')
+    // Format Correct answer lines
+    .replace(/^\s*(Correct\s*:\s*.*)$/gim, '<div style="margin-left: 20px; margin-bottom: 12px; color: #15803d; font-weight: bold; font-family:\'Times New Roman\';">$1</div>')
+    // Format Questions lines (lines starting with Q1., Q2., or 1., 2.)
+    .replace(/^\s*(Q?\d+[\.\)]\s*.*)$/gim, '<div style="font-weight: bold; margin-top: 15px; margin-bottom: 6px; font-family:\'Times New Roman\';">$1</div>')
     .replace(/\n/gim, '<br />');
 
   return `
@@ -289,7 +299,7 @@ function compileHtmlWordFallback(data) {
         <![endif]-->
         <style>
           body { 
-            font-family: 'Arial', sans-serif; 
+            font-family: 'Times New Roman', Times, serif; 
             font-size: 11pt; 
             color: #1e293b;
             line-height: 1.5; 
