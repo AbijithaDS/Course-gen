@@ -1,5 +1,15 @@
 const db = require('../data/db');
-const config = require('../config');
+
+// Load config from file (local dev) or env vars (production)
+let config;
+try {
+  config = require('../config');
+} catch (e) {
+  config = {
+    SYSTEM_OWNER_EMAIL_HASH: process.env.SYSTEM_OWNER_EMAIL_HASH || '',
+    SYSTEM_OWNER_PASSWORD_HASH: process.env.SYSTEM_OWNER_PASSWORD_HASH || ''
+  };
+}
 
 
 // Expose Google Client ID dynamically to frontend
