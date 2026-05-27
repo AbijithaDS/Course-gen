@@ -23,7 +23,6 @@ const CourseContent = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [assignmentCount, setAssignmentCount] = useState(5);
   const [content, setContent] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [appsScriptCode, setAppsScriptCode] = useState('');
   const [isGeneratingScript, setIsGeneratingScript] = useState(false);
@@ -133,7 +132,11 @@ const CourseContent = () => {
       return puncMatch ? puncMatch[0] : '';
     });
     
-    return cleaned.replace(/\s+/g, ' ').trim();
+    return cleaned
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\r\n/g, '\n')
+      .replace(/\n\s*\n/g, '\n\n')
+      .trim();
   };
 
   // Convert Markdown to HTML for exports
@@ -142,12 +145,18 @@ const CourseContent = () => {
     let cleaned = cleanAllTextOfCOK(md);
     // Quick simple markdown parser for bold, headers, list, etc.
     let html = cleaned
-      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+      .replace(/^### (.*$)/gim, '<h3 style="color:#4f46e5; margin-top:20px; font-size:14pt; font-family:\'Times New Roman\', Times, serif;">$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2 style="color:#4f46e5; margin-top:25px; font-size:16pt; font-family:\'Times New Roman\', Times, serif;">$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1 style="color:#4f46e5; margin-top:30px; font-size:18pt; font-family:\'Times New Roman\', Times, serif;">$1</h1>')
       .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/gim, '<em>$1</em>')
-      .replace(/^- (.*$)/gim, '<li>$1</li>')
+      .replace(/^- (.*$)/gim, '<li style="margin-left: 20px; margin-bottom: 5px; font-family:\'Times New Roman\', Times, serif;">$1</li>')
+      // Format MCQ Options (lines starting with option indicators)
+      .replace(/^\s*([a-d][\)\.])\s*(.*)$/gim, '<div style="margin-left: 20px; color: #334155; margin-bottom: 3px; font-family:\'Times New Roman\', Times, serif;">$1 $2</div>')
+      // Format Correct answer lines
+      .replace(/^\s*(Correct\s*:\s*.*)$/gim, '<div style="margin-left: 20px; margin-bottom: 12px; color: #15803d; font-weight: bold; font-family:\'Times New Roman\', Times, serif;">$1</div>')
+      // Format Questions lines (lines starting with Q1., Q2., or 1., 2.)
+      .replace(/^\s*(Q?\d+[\.\)]\s*.*)$/gim, '<div style="font-weight: bold; margin-top: 15px; margin-bottom: 6px; font-family:\'Times New Roman\', Times, serif;">$1</div>')
       .replace(/\n/gim, '<br />');
     return html;
   };
@@ -787,7 +796,7 @@ const CourseContent = () => {
           <head>
             <title>${docTitle}</title>
             <style>
-              body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1e293b; padding: 2.5rem; line-height: 1.6; }
+              body { font-family: 'Times New Roman', Times, serif; color: #1e293b; padding: 2.5rem; line-height: 1.6; }
               .header-container { border-bottom: 2px solid #4f46e5; padding-bottom: 1rem; margin-bottom: 2rem; }
               .header-title { font-size: 24px; font-weight: bold; margin: 0; color: #1e293b; }
               .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem; font-size: 14px; color: #64748b; }
@@ -1102,7 +1111,7 @@ const CourseContent = () => {
               key={tab.id}
               className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-secondary'}`}
               style={{ justifyContent: 'flex-start', border: activeTab === tab.id ? 'none' : '' }}
-              onClick={() => { setActiveTab(tab.id); setContent(''); setIsEditing(false); }}
+              onClick={() => { setActiveTab(tab.id); setContent(''); }}
             >
               <FileText size={18} /> {tab.label}
             </button>
@@ -1118,13 +1127,6 @@ const CourseContent = () => {
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
               {content && (
                 <>
-                  <button 
-                    className="btn btn-secondary" 
-                    onClick={() => setIsEditing(!isEditing)}
-                    style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', height: '36px' }}
-                  >
-                    {isEditing ? <><Save size={16} /> Save</> : <><Edit3 size={16} /> Edit</>}
-                  </button>
                   <button 
                     className="btn btn-secondary" 
                     onClick={handleExportPDF}
@@ -1207,18 +1209,9 @@ const CourseContent = () => {
                 <p style={{ fontWeight: 500 }}>Gemini AI is generating high-quality curriculum material...</p>
               </div>
             ) : (
-              isEditing ? (
-                <textarea 
-                  className="input-field"
-                  style={{ flex: 1, resize: 'none', border: 'none', padding: '1.5rem', fontFamily: 'monospace', fontSize: '0.95rem', lineHeight: '1.6' }}
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                />
-              ) : (
-                <div style={{ flex: 1, padding: '1.5rem', overflowY: 'auto', whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '1rem', color: '#1e293b' }}>
-                  {content}
-                </div>
-              )
+              <div style={{ flex: 1, padding: '1.5rem', overflowY: 'auto', whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '1rem', color: '#1e293b' }}>
+                {content}
+              </div>
             )}
           </div>
         </div>
