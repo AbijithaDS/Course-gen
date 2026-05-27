@@ -135,10 +135,84 @@ exports.generateContent = async (req, res) => {
         Ensure that the questions cover the subject syllabus comprehensively. Do not include any extra text outside of the questions.`;
         break;
       case 'hots':
-        promptInstruction = 'Generate 5 Higher Order Thinking Skills (HOTS) questions that require critical analysis and application of concepts.';
+        promptInstruction = `Generate exactly 10 Higher Order Thinking Skills (HOTS) questions for each of the 5 Units of the syllabus (a total of 50 questions).
+        These questions must require critical analysis, design, evaluation, or application of concepts.
+        
+        Strictly format the output as follows (reset numbering to 1-10 for each Unit, do not include options, do not include answers):
+        
+        ### Unit I: <Unit Title>
+        1. <Question Text>
+        2. <Question Text>
+        3. <Question Text>
+        4. <Question Text>
+        5. <Question Text>
+        6. <Question Text>
+        7. <Question Text>
+        8. <Question Text>
+        9. <Question Text>
+        10. <Question Text>
+        
+        ### Unit II: <Unit Title>
+        1. <Question Text>
+        2. <Question Text>
+        3. <Question Text>
+        4. <Question Text>
+        5. <Question Text>
+        6. <Question Text>
+        7. <Question Text>
+        8. <Question Text>
+        9. <Question Text>
+        10. <Question Text>
+        
+        ### Unit III: <Unit Title>
+        1. <Question Text>
+        2. <Question Text>
+        3. <Question Text>
+        4. <Question Text>
+        5. <Question Text>
+        6. <Question Text>
+        7. <Question Text>
+        8. <Question Text>
+        9. <Question Text>
+        10. <Question Text>
+        
+        ### Unit IV: <Unit Title>
+        1. <Question Text>
+        2. <Question Text>
+        3. <Question Text>
+        4. <Question Text>
+        5. <Question Text>
+        6. <Question Text>
+        7. <Question Text>
+        8. <Question Text>
+        9. <Question Text>
+        10. <Question Text>
+        
+        ### Unit V: <Unit Title>
+        1. <Question Text>
+        2. <Question Text>
+        3. <Question Text>
+        4. <Question Text>
+        5. <Question Text>
+        6. <Question Text>
+        7. <Question Text>
+        8. <Question Text>
+        9. <Question Text>
+        10. <Question Text>
+        
+        Do not write any introductory or concluding text.`;
         break;
       case 'assignment':
-        promptInstruction = 'Generate 3 practical assignment questions/scenarios that require students to research or build something.';
+        const assignmentCount = Math.max(1, Math.min(200, req.body.assignmentCount ? parseInt(req.body.assignmentCount, 10) : 5));
+        promptInstruction = `Generate exactly ${assignmentCount} practical assignment questions/scenarios (maximum ${assignmentCount}) that require students to research, analyze, or build something related to this subject.
+        
+        Strictly format the output as a numbered list from 1 to ${assignmentCount}:
+        1. <Question/Scenario Text>
+        2. <Question/Scenario Text>
+        ...
+        ${assignmentCount}. <Question/Scenario Text>
+        
+        Do not write any introductory or concluding text.`;
         break;
       case 'beyond':
         promptInstruction = `Generate exactly 5 relevant "Beyond-the-Syllabus" topics for each of the 5 Units of the syllabus (a total of 25 topics).

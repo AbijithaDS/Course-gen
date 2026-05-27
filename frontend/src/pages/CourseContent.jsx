@@ -20,6 +20,7 @@ const CourseContent = () => {
   
   const [activeTab, setActiveTab] = useState('cia1');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [assignmentCount, setAssignmentCount] = useState(5);
   const [content, setContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
@@ -78,7 +79,8 @@ const CourseContent = () => {
           subject: subject, // subject contains { code, name, ... }
           type: activeTab,
           regulation: regulation,
-          generatedBy: user?.username || 'faculty'
+          generatedBy: user?.username || 'faculty',
+          assignmentCount: activeTab === 'assignment' ? assignmentCount : undefined
         })
       });
       
@@ -596,6 +598,186 @@ const CourseContent = () => {
         </html>
       `);
       printWindow.document.close();
+    } else if (activeTab === 'hots' || activeTab === 'assignment') {
+      // === HIGH-FIDELITY HOTS & ASSIGNMENT PRINT ===
+      const yearSem = `${toRoman(year)}/${toRoman(semester)}`;
+      const academicYear = getAcademicYear();
+      
+      const getFullBranchName = (dept) => {
+        if (!dept) return '';
+        const name = dept.name || '';
+        return name.replace(/^Department of\s+/i, '').toUpperCase();
+      };
+      
+      const ayStart = parseInt(academicYear.split('-')[0], 10);
+      const batchStart = ayStart - parseInt(year, 10) + 1;
+      const batchEnd = batchStart + 4;
+      const batchStr = `${batchStart} – ${batchEnd}`;
+      
+      const parseHotsMarkdown = (txt) => {
+        const units = [];
+        const matches = [...txt.matchAll(/(?:^|\n)\s*###+\s*(Unit\s+[IVX\d]+[:\-\s].*?)(?=\n|$)/gi)];
+        
+        for (let idx = 0; idx < matches.length; idx++) {
+          const header = matches[idx][1].trim();
+          const startIdx = matches[idx].index + matches[idx][0].length;
+          const endIdx = matches[idx+1] ? matches[idx+1].index : txt.length;
+          const unitBody = txt.substring(startIdx, endIdx).trim();
+          
+          const lines = unitBody.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+          const questions = [];
+          
+          for (const line of lines) {
+            const m = line.match(/^\s*(\d+)[\.\)]\s*(.*)/);
+            if (m) {
+              questions.push({
+                num: m[1].trim(),
+                text: m[2].replace(/\*+|_+/g, '').trim()
+              });
+            }
+          }
+          
+          const titleParts = header.split(':');
+          const unitTitle = titleParts[1] ? titleParts[1].replace(/\*+|_+/g, '').trim() : header.replace(/\*+|_+/g, '').trim();
+          
+          units.push({
+            title: unitTitle,
+            questions: questions
+          });
+        }
+        return units;
+      };
+      
+      const parseAssignmentMarkdown = (txt) => {
+        const lines = txt.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const questions = [];
+        for (const line of lines) {
+          const m = line.match(/^\s*(\d+)[\.\)]\s*(.*)/);
+          if (m) {
+            questions.push({
+              num: m[1].trim(),
+              text: m[2].replace(/\*+|_+/g, '').trim()
+            });
+          }
+        }
+        return questions;
+      };
+      
+      let contentHtml = '';
+      if (activeTab === 'hots') {
+        const units = parseHotsMarkdown(content);
+        const romanNums = ["I", "II", "III", "IV", "V"];
+        
+        units.forEach((unit, uIdx) => {
+          const roman = romanNums[uIdx] || String(uIdx + 1);
+          contentHtml += `
+            <div class="unit-title">UNIT ${roman} – ${unit.title.toUpperCase()}</div>
+            <div class="questions-list">
+              ${unit.questions.map(q => `
+                <div class="question-p">
+                  ${q.num}. ${q.text}
+                </div>
+              `).join('')}
+            </div>
+          `;
+        });
+      } else {
+        const questions = parseAssignmentMarkdown(content);
+        contentHtml += '<div class="questions-list" style="margin-top: 20px;">';
+        questions.forEach(q => {
+          contentHtml += `
+            <div class="question-p">
+              ${q.num}. ${q.text}
+            </div>
+          `;
+        });
+        contentHtml += '</div>';
+      }
+      
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${docTitle}</title>
+            <style>
+              @page { size: A4; margin: 1.5cm 1cm; }
+              body { font-family: 'Times New Roman', Times, serif; color: #000; margin: 0; padding: 10px; font-size: 11pt; line-height: 1.2; }
+              table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+              td { padding: 4px 6px; font-size: 11pt; font-family: 'Times New Roman', Times, serif; }
+              .logo-table td { border: none; padding: 0; vertical-align: middle; }
+              .meta-table { border: 1px solid #000; width: 100%; }
+              .meta-table td { border: 1px solid #000; font-weight: bold; }
+              .meta-table td.val { font-weight: normal; }
+              .title-p { text-align: center; font-weight: bold; font-size: 12pt; margin: 15px 0 5px 0; }
+              .dept-p { text-align: center; font-weight: bold; font-size: 11pt; margin: 5px 0; text-transform: uppercase; }
+              .ay-p { text-align: center; font-weight: bold; font-size: 11pt; margin: 5px 0 15px 0; }
+              .unit-title { text-align: center; font-weight: bold; font-size: 11pt; margin: 25px 0 10px 0; text-transform: uppercase; }
+              .question-p { text-align: justify; font-size: 11pt; margin-bottom: 12pt; margin-top: 0; line-height: 1.15; }
+              .footer-signoff { margin-top: 50px; display: flex; justify-content: space-between; font-weight: bold; font-size: 11pt; page-break-inside: avoid; }
+              @media print { body { padding: 0; } }
+            </style>
+          </head>
+          <body>
+            <!-- College Header -->
+            <table class="logo-table">
+              <tr>
+                <td style="width: 80px; text-align: center;">
+                  <img src="/logo.png" style="width: 70px; height: auto;" alt="Logo" />
+                </td>
+                <td style="text-align: center; padding-left: 10px;">
+                  <div style="font-size: 14pt; font-weight: bold; font-family: 'Times New Roman', Times, serif; line-height: 1.3;">SRI SHANMUGHA COLLEGE OF ENGINEERING AND TECHNOLOGY</div>
+                  <div style="font-size: 10pt; font-family: 'Times New Roman', Times, serif; font-weight: normal; margin-top: 2px;">(An Autonomous Institution)</div>
+                  <div style="font-size: 9pt; font-family: 'Times New Roman', Times, serif; font-weight: normal; margin-top: 2px;">Pullipalayam, Morur (Po.), Sankari (Tk.), Salem (Dt.) - 637 304.</div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Department and Title -->
+            <div class="dept-p">DEPARTMENT OF ${getFullBranchName(department)}</div>
+            <div class="title-p">${activeTab === 'hots' ? 'HOTS (Higher Order Thinking Skills) Questions' : 'Assignment Questions'}</div>
+            <div class="ay-p">Academic Year (${academicYear})</div>
+
+            <!-- Metadata Details Table -->
+            <table class="meta-table">
+              <tr>
+                <td style="width: 35%; border: 1px solid #000;">Name of the Faculty :</td>
+                <td class="val" style="width: 65%; border: 1px solid #000;">${subject.staffName || 'Faculty member'}</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #000;">Subject Code / Subject Name :</td>
+                <td class="val" style="border: 1px solid #000;">${subject.code} / ${subject.name}</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #000;">Year / Semester :</td>
+                <td class="val" style="border: 1px solid #000;">${yearSem}</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #000;">Batch :</td>
+                <td class="val" style="border: 1px solid #000;">${batchStr}</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #000;">Regulations :</td>
+                <td class="val" style="border: 1px solid #000;">${formatRegulation(regulation)}</td>
+              </tr>
+            </table>
+
+            <!-- Questions Area -->
+            <div class="content-area">
+              ${contentHtml}
+            </div>
+
+            <!-- Footer Sign-off -->
+            <div class="footer-signoff">
+              <div>COURSE INSTRUCTOR</div>
+              <div>HOD</div>
+            </div>
+            
+            <script>
+              window.onload = function() { window.print(); };
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
     } else {
       // === GENERIC PDF for non-CIA tabs ===
       const formattedHtml = renderMarkdownToHtml(content);
@@ -932,17 +1114,29 @@ const CourseContent = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-light)' }}>
             <h3 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{TABS.find(t => t.id === activeTab)?.label} Generator</h3>
             
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
               {content && (
                 <>
-                  <button className="btn btn-secondary" onClick={() => setIsEditing(!isEditing)}>
-                    {isEditing ? <><Save size={18} /> Save</> : <><Edit3 size={18} /> Edit</>}
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={() => setIsEditing(!isEditing)}
+                    style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', height: '36px' }}
+                  >
+                    {isEditing ? <><Save size={16} /> Save</> : <><Edit3 size={16} /> Edit</>}
                   </button>
-                  <button className="btn btn-secondary" onClick={handleExportPDF}>
-                    <Download size={18} /> PDF
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={handleExportPDF}
+                    style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', height: '36px' }}
+                  >
+                    <Download size={16} /> PDF
                   </button>
-                  <button className="btn btn-secondary" onClick={handleExportWord}>
-                    <Download size={18} /> Word
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={handleExportWord}
+                    style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', height: '36px' }}
+                  >
+                    <Download size={16} /> Word
                   </button>
                   {activeTab === 'quiz' && (
                     <button 
@@ -953,7 +1147,10 @@ const CourseContent = () => {
                         color: '#ffffff', 
                         border: 'none',
                         boxShadow: '0 4px 14px 0 rgba(103, 58, 183, 0.39)',
-                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                        padding: '0.5rem 1rem', 
+                        fontSize: '0.85rem', 
+                        height: '36px'
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = 'translateY(-2px)';
@@ -964,13 +1161,35 @@ const CourseContent = () => {
                         e.currentTarget.style.boxShadow = '0 4px 14px 0 rgba(103, 58, 183, 0.39)';
                       }}
                     >
-                      <Sparkles size={18} /> Create Google Form
+                      <Sparkles size={16} /> Create Google Form
                     </button>
                   )}
                 </>
               )}
-              <button className="btn btn-primary" onClick={handleGenerate} disabled={isGenerating}>
-                {isGenerating ? <><RefreshCw size={18} className="spinner" style={{ animation: 'spin 1s linear infinite' }}/> Generating...</> : <><Sparkles size={18} /> Generate AI Content</>}
+              {activeTab === 'assignment' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginRight: '0.75rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Questions (Max 200):</label>
+                  <input 
+                    type="number" 
+                    min={1} 
+                    max={200} 
+                    className="input-field" 
+                    style={{ width: '80px', padding: '0.4rem 0.6rem', fontSize: '0.85rem', textAlign: 'center', backgroundColor: 'white', height: '36px' }}
+                    value={assignmentCount}
+                    onChange={(e) => {
+                      const val = Math.max(1, Math.min(200, parseInt(e.target.value, 10) || 1));
+                      setAssignmentCount(val);
+                    }}
+                  />
+                </div>
+              )}
+              <button 
+                className="btn btn-primary" 
+                onClick={handleGenerate} 
+                disabled={isGenerating}
+                style={{ padding: '0.75rem 1.5rem', fontSize: '0.95rem', height: '44px' }}
+              >
+                {isGenerating ? <><RefreshCw size={18} className="spinner" style={{ animation: 'spin 1s linear infinite', width: '18px', height: '18px' }}/> Generating...</> : <><Sparkles size={18} /> Generate AI Content</>}
               </button>
             </div>
           </div>

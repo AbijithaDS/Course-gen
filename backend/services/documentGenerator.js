@@ -485,14 +485,21 @@ function generateDocument(payload) {
     if (hasDocxTemplate && !isCIA) {
       const isQBankType = (type === 'qbank' || type === 'quiz' || type === 'assignment');
       
-      if (isQBankType || type === 'beyond') {
+      if (isQBankType || type === 'beyond' || type === 'hots') {
         try {
           const fs = require('fs');
           const path = require('path');
           const { execFileSync } = require('child_process');
           
           const templatePath = path.resolve(templateService.getTemplatePath(type));
-          const scriptName = type === 'beyond' ? 'beyondGenerator.py' : 'qbankGenerator.py';
+          let scriptName = 'qbankGenerator.py';
+          if (type === 'beyond') {
+            scriptName = 'beyondGenerator.py';
+          } else if (type === 'hots') {
+            scriptName = 'hotsGenerator.py';
+          } else if (type === 'assignment') {
+            scriptName = 'assignmentGenerator.py';
+          }
           const scriptPath = path.resolve(path.join(__dirname, scriptName));
           
           console.log(`Using high-fidelity Python generator for type ${type} using script ${scriptName}...`);

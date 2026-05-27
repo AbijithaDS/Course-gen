@@ -9,8 +9,8 @@ const TEMPLATE_MAP = {
   cia2: 'Cia 1,2 - demo format.docx',
   qbank: 'Question Bank - format.docx',
   // fallback placeholders for other formats
-  hots: 'Cia 1,2 - demo format.docx',
-  assignment: 'Question Bank - format.docx',
+  hots: 'Hots.docx',
+  assignment: 'Assignment.docx',
   beyond: 'Content Beyond The Syllabus - format.docx' 
 };
 
