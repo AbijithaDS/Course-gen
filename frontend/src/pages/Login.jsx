@@ -77,7 +77,8 @@ const Login = () => {
                     size: 'large', 
                     width: 370,
                     text: 'continue_with',
-                    shape: 'pill'
+                    shape: 'pill',
+                    logo_alignment: 'center'
                   }
                 );
               }
