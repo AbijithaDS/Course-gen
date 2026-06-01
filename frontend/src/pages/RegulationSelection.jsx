@@ -51,13 +51,7 @@ const RegulationSelection = () => {
           <p>No regulations found. Is the server running?</p>
         </div>
       ) : (
-        <div style={{ 
-          maxWidth: '800px', 
-          margin: '0 auto',
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', 
-          gap: '1.5rem' 
-        }}>
+        <div className="selection-grid-regulations">
           {regulations.map((reg) => (
             <div 
               key={reg.id} 

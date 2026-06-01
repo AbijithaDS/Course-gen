@@ -75,7 +75,7 @@ const Login = () => {
                   { 
                     theme: 'outline', 
                     size: 'large', 
-                    width: 370,
+                    width: Math.max(200, Math.min(370, btnContainer.offsetWidth || 300)),
                     text: 'continue_with',
                     shape: 'pill',
                     logo_alignment: 'center'

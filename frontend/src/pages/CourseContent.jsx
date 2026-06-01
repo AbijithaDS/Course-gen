@@ -1121,10 +1121,10 @@ const CourseContent = () => {
         {/* Main Content Workspace */}
         <div className="glass-card course-workspace">
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-light)' }}>
+          <div className="course-workspace-header">
             <h3 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{TABS.find(t => t.id === activeTab)?.label} Generator</h3>
             
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <div className="course-action-buttons">
               {content && (
                 <>
                   <button 

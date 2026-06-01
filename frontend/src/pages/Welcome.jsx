@@ -24,7 +24,7 @@ const Welcome = () => {
         </div>
       </div>
       
-      <h1 style={{ fontSize: '3.25rem', marginBottom: '1rem', letterSpacing: '-0.025em', fontWeight: 800 }}>
+      <h1 style={{ fontSize: 'clamp(2rem, 8vw, 3.25rem)', marginBottom: '1rem', letterSpacing: '-0.025em', fontWeight: 800 }}>
         Course File Generator
       </h1>
 
@@ -75,12 +75,7 @@ const Welcome = () => {
             Are you a Faculty member or System Administrator?
           </h3>
           
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: '1fr 1fr', 
-            gap: '2rem',
-            marginBottom: '2.5rem'
-          }}>
+          <div className="welcome-role-grid">
             {/* Faculty Portal Option */}
             <div 
               className="glass-card"

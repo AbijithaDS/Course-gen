@@ -59,11 +59,7 @@ const SubjectSelection = () => {
           <p>No subjects found for {department.id} in Semester {semester}. Ask an Admin to add them.</p>
         </div>
       ) : (
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
-          gap: '1.5rem' 
-        }}>
+        <div className="selection-grid-subjects">
           {subjects.map((subj) => (
             <div 
               key={subj.id} 

@@ -63,7 +63,7 @@ const SemesterSelection = () => {
           <label className="label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.125rem', marginBottom: '1rem' }}>
             <Calendar size={20} /> Select Academic Year
           </label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+          <div className="semester-year-grid">
             {[1, 2, 3, 4].map(y => (
               <button 
                 key={y}
@@ -81,7 +81,7 @@ const SemesterSelection = () => {
           <label className="label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.125rem', marginBottom: '1rem' }}>
             <Layers size={20} /> Semester Type
           </label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="semester-type-grid">
             {['Odd', 'Even'].map(type => (
               <button 
                 key={type}

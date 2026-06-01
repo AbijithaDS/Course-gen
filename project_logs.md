@@ -16,3 +16,8 @@
 - **Features added**: None.
 - **Bugs found**: Part B questions were left blank in generated PDF and Word documents.
 - **Fixes**: Corrected question segment parsing regex in frontend and backend generators to support options formatted as `11a`/`12b` by lifting strict word boundary limits.
+
+**Date -- 2026-06-01 14:45**
+- **Features added**: Completed institution-wide responsive audit and overhaul across the entire web application.
+- **Bugs found**: Non-responsive layouts, cramped grid systems, off-screen overflows, fixed input sizes, and sidebar layout compression on mobile/tablet viewports.
+- **Fixes**: Wrapped strict 100vh viewport locks in desktop-only media queries, replaced fixed inline grid/flex rules with a fluid CSS layout system, dynamic Google sign-in button scaling, reflowing dashboards, and stacked grid selections.

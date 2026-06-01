@@ -58,11 +58,7 @@ const DepartmentSelection = () => {
           <p>No departments configured. Please ask an Admin to add departments.</p>
         </div>
       ) : (
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
-          gap: '1.5rem' 
-        }}>
+        <div className="selection-grid-departments">
           {departments.map((dept) => {
             const Icon = ICON_MAP[dept.id] || BookOpen;
             return (

@@ -132,7 +132,7 @@ const Register = () => {
             <label className="label" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
               <Shield size={16} /> Register As
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
               <button 
                 type="button"
                 className={`btn ${role === 'Faculty' ? 'btn-primary' : 'btn-secondary'}`}

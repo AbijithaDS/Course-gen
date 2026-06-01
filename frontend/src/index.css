@@ -473,4 +473,234 @@ button {
   }
 }
 
+/* Responsive Overhaul Layout Classes */
 
+/* 1. Welcome Portal Grids */
+.welcome-role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+}
+@media (max-width: 767px) {
+  .welcome-role-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* 2. Selection grids for cards */
+.selection-grid-departments {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1.5rem;
+}
+.selection-grid-regulations {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.selection-grid-subjects {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+/* 3. Semester selection grids */
+.semester-year-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+.semester-type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 639px) {
+  .semester-year-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .semester-type-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 4. Responsive Admin Dashboard structure */
+.admin-layout-container {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+.admin-sidebar {
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.admin-workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Admin Usage monitor cards */
+.admin-analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+.admin-charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+/* Admin CRUD layout columns */
+.admin-crud-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 2rem;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+.admin-subject-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.75fr;
+  gap: 2rem;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Admin filter bar */
+.admin-filter-bar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.3);
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-glass);
+}
+.admin-filter-bar > * {
+  flex: 1 1 150px;
+}
+.admin-filter-bar .admin-search-wrapper {
+  flex: 2 1 240px;
+}
+
+/* Admin modals */
+.admin-modal-card {
+  width: 100%;
+  max-width: 850px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  background-color: white;
+}
+
+/* Media query rules for Admin Dashboard reflows on smaller viewports */
+@media (max-width: 1023px) {
+  .admin-layout-container {
+    flex-direction: column;
+    gap: 1.5rem;
+    overflow: visible;
+  }
+  .admin-sidebar {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .admin-sidebar button {
+    flex: 1 1 calc(33.333% - 0.5rem);
+    min-width: 140px;
+  }
+  .admin-workspace {
+    overflow: visible;
+  }
+  
+  .admin-analytics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .admin-charts-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .admin-crud-grid,
+  .admin-subject-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    overflow: visible;
+  }
+  .admin-crud-grid form,
+  .admin-subject-grid form {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-sidebar button {
+    flex: 1 1 calc(50% - 0.5rem);
+  }
+  .admin-modal-card {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-analytics-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-sidebar button {
+    flex: 1 1 100%;
+  }
+}
+
+/* Course workspace responsive headers */
+.course-workspace-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.course-action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .course-workspace-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .course-action-buttons {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

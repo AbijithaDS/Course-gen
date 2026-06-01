@@ -413,7 +413,7 @@ const AdminDashboard = () => {
   });
 
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       
       {/* Top Navigation */}
       <div className="top-nav" style={{ marginBottom: '1.5rem' }}>
@@ -430,10 +430,10 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '2rem', flex: 1, overflow: 'hidden' }}>
+      <div className="admin-layout-container">
         
         {/* Sidebar Nav */}
-        <div style={{ width: '250px', display: 'flex', flexDirection: 'column', gap: '0.5rem', flexShrink: 0 }}>
+        <div className="admin-sidebar">
           <button 
             className={`btn ${activeTab === 'monitor' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ justifyContent: 'flex-start', border: activeTab === 'monitor' ? 'none' : '' }}
@@ -479,7 +479,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Dynamic Content Panel */}
-        <div className="glass-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="glass-card admin-workspace">
           
           {/* TAB 1: MONITOR & STATS */}
           {activeTab === 'monitor' && (
@@ -498,7 +498,7 @@ const AdminDashboard = () => {
               ) : stats ? (
                 <>
                   {/* Grid Cards */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+                  <div className="admin-analytics-grid">
                     <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem', backgroundColor: 'rgba(255,255,255,0.4)' }}>
                       <div style={{ padding: '1rem', backgroundColor: '#e0e7ff', borderRadius: '50%', color: 'var(--primary)' }}>
                         <FileText size={32} />
@@ -531,7 +531,7 @@ const AdminDashboard = () => {
                   </div>
 
                   {/* Stunning Custom Glassmorphic Charts */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '1rem' }}>
+                  <div className="admin-charts-grid">
                     
                     {/* Document Type Bar Chart */}
                     <div className="glass-card" style={{ padding: '1.75rem', backgroundColor: 'rgba(255,255,255,0.4)' }}>
@@ -592,7 +592,7 @@ const AdminDashboard = () => {
               {errorMsg && <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', fontSize: '0.875rem' }}>{errorMsg}</div>}
 
               {/* Form and List Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem', flex: 1, overflow: 'hidden' }}>
+              <div className="admin-crud-grid">
                 
                 {/* Add Form */}
                 <form onSubmit={handleAddDept} className="glass-card" style={{ padding: '1.25rem 1rem', backgroundColor: 'rgba(255,255,255,0.4)', display: 'flex', flexDirection: 'column', gap: '0.85rem', overflowY: 'auto', maxBlockSize: '100%' }}>
@@ -673,7 +673,7 @@ const AdminDashboard = () => {
               {errorMsg && <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', fontSize: '0.875rem' }}>{errorMsg}</div>}
 
               {/* Form and List Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.75fr', gap: '2rem', flex: 1, overflow: 'hidden' }}>
+              <div className="admin-subject-grid">
                 
                 {/* Add Form */}
                 <form onSubmit={handleAddSubject} className="glass-card" style={{ padding: '1.25rem 1rem', backgroundColor: 'rgba(255,255,255,0.4)', display: 'flex', flexDirection: 'column', gap: '0.85rem', overflowY: 'auto', maxBlockSize: '100%' }}>
@@ -790,26 +790,15 @@ const AdminDashboard = () => {
               </div>
 
               {/* Search & Advanced Filtering Controls */}
-              <div style={{ 
-                display: 'flex', 
-                gap: '0.75rem', 
-                alignItems: 'center', 
-                flexWrap: 'wrap',
-                width: '100%',
-                backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                padding: '0.6rem 0.85rem',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border-glass)'
-              }}>
+              <div className="admin-filter-bar">
                 {/* Search input field */}
-                <div style={{ 
+                <div className="admin-search-wrapper" style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
                   backgroundColor: 'white', 
                   border: '1px solid var(--border-light)', 
                   borderRadius: 'var(--radius-sm)', 
-                  padding: '0.4rem 0.75rem', 
-                  flex: '2 1 240px'
+                  padding: '0.4rem 0.75rem'
                 }}>
                   <Search size={16} color="var(--text-muted)" style={{ marginRight: '0.5rem' }} />
                   <input 
@@ -1030,15 +1019,7 @@ const AdminDashboard = () => {
               </div>
 
               {/* Search user bar */}
-              <div style={{ 
-                display: 'flex', 
-                gap: '0.75rem', 
-                alignItems: 'center', 
-                backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                padding: '0.6rem 0.85rem',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border-glass)'
-              }}>
+              <div className="admin-filter-bar">
                 <div style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
@@ -1196,15 +1177,7 @@ const AdminDashboard = () => {
           justifyContent: 'center', 
           padding: '2rem' 
         }}>
-          <div className="glass-card" style={{ 
-            width: '100%', 
-            maxWidth: '850px', 
-            maxHeight: '90vh', 
-            display: 'flex', 
-            flexDirection: 'column', 
-            padding: '2rem',
-            backgroundColor: 'white'
-          }}>
+          <div className="glass-card admin-modal-card">
             {/* Modal Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border-light)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
               <div>
