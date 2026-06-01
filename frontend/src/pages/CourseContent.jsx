@@ -251,8 +251,13 @@ const CourseContent = () => {
     };
 
     const parseOption = (segment, letter) => {
+      const lLower = letter.toLowerCase();
+      const lUpper = letter.toUpperCase();
+      const lClass = `[${lLower}${lUpper}]`;
+      const anyClass = `[a-bA-B]`;
+
       const patterns = [
-        new RegExp(`(?:\\b|\\()\\s*(?:\\d+)?${letter}\\s*[\\.\\):]\\s*\\*?\\*?\\s*([\\s\\S]+?)(?=(?:\\b|\\()\\s*(?:\\d+)?[a-b]\\s*[\\.\\):]|\\bOR\\b|$)`, 'i')
+        new RegExp(`(?:\\b|\\()\\s*(?:\\d+)?${lClass}\\s*[\\.\\):]\\s*\\*?\\*?\\s*([\\s\\S]+?)(?=(?:\\b|\\()\\s*(?:\\d+)?${anyClass}\\s*[\\.\\):]|\\b(?:OR|Or|\\*\\*OR\\*\\*|\\*\\*Or\\*\\*)\\b|$)`)
       ];
 
       for (const pat of patterns) {

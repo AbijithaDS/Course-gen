@@ -165,13 +165,19 @@ function parseQuestions(content) {
   const parseOption = (segment, letter) => {
     // Multiple regex patterns to handle various AI formatting styles:
     // "a. text", "a) text", "(a) text", "11a. text", "  a. text", etc.
+    const lLower = letter.toLowerCase();
+    const lUpper = letter.toUpperCase();
+    const lClass = `[${lLower}${lUpper}]`;
+    const anyClass = `[a-bA-B]`;
+    
     const patterns = [
       // Pattern 1: Standard "a." / "a)" / "a:" with optional preceding number
-      new RegExp(`(?:\\b|\\()\\s*(?:\\d+)?${letter}\\s*[\\.\\):]\\s*\\*?\\*?\\s*([\\s\\S]+?)(?=(?:\\b|\\()\\s*(?:\\d+)?[a-b]\\s*[\\.\\):]|\\bOR\\b|$)`, 'i'),
+      // Uses case-sensitive matching for OR/Or/**OR** to avoid matching lowercase "or" in text.
+      new RegExp(`(?:\\b|\\()\\s*(?:\\d+)?${lClass}\\s*[\\.\\):]\\s*\\*?\\*?\\s*([\\s\\S]+?)(?=(?:\\b|\\()\\s*(?:\\d+)?${anyClass}\\s*[\\.\\):]|\\b(?:OR|Or|\\*\\*OR\\*\\*|\\*\\*Or\\*\\*)\\b|$)`),
       // Pattern 2: Parenthesized "(a)" style
-      new RegExp(`\\(${letter}\\)\\s*\\*?\\*?\\s*([\\s\\S]+?)(?=\\([a-b]\\)|\\bOR\\b|$)`, 'i'),
+      new RegExp(`\\(${lClass}\\)\\s*\\*?\\*?\\s*([\\s\\S]+?)(?=\\([a-bA-B]\\)|\\b(?:OR|Or|\\*\\*OR\\*\\*|\\*\\*Or\\*\\*)\\b|$)`),
       // Pattern 3: Indented letter with dot/paren, more lenient
-      new RegExp(`^\\s+${letter}\\s*[\\.\\)]\\s*(.+)`, 'im')
+      new RegExp(`^\\s+${lClass}\\s*[\\.\\)]\\s*(.+)`, 'm')
     ];
 
     for (const pat of patterns) {
