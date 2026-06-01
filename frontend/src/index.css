@@ -237,26 +237,28 @@ button {
 }
 
 /* Dashboard & Viewport constraints */
-.dashboard-layout {
-  height: 100vh;
-  overflow: hidden;
-}
+@media (min-width: 1024px) {
+  .dashboard-layout {
+    height: 100vh;
+    overflow: hidden;
+  }
 
-.dashboard-layout .app-container {
-  height: 100vh;
-  overflow: hidden;
-}
+  .dashboard-layout .app-container {
+    height: 100vh;
+    overflow: hidden;
+  }
 
-.dashboard-layout .main-content {
-  height: 100vh;
-  max-height: 100vh;
-  overflow: hidden;
-  padding: 1rem 1.5rem 2rem 1.5rem;
-}
+  .dashboard-layout .main-content {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+    padding: 1rem 1.5rem 2rem 1.5rem;
+  }
 
-.dashboard-layout .top-nav {
-  padding: 0.75rem 0;
-  margin-bottom: 1rem;
+  .dashboard-layout .top-nav {
+    padding: 0.75rem 0;
+    margin-bottom: 1rem;
+  }
 }
 
 /* Scroll lock when modal is open */
@@ -359,6 +361,115 @@ button {
     font-size: 0.75rem;
     text-transform: uppercase;
     margin-right: 1rem;
+  }
+}
+
+/* Course Material page layout enhancements */
+.course-content-container {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.course-sidebar {
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.course-workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.course-preview-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+  min-height: 0;
+}
+
+.course-content-viewer {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-size: 1rem;
+  color: #1e293b;
+  scroll-behavior: smooth;
+}
+
+/* Beautiful custom scrollbars for premium UX */
+.course-content-viewer::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.course-content-viewer::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 999px;
+}
+
+.course-content-viewer::-webkit-scrollbar-thumb {
+  background: rgba(79, 70, 229, 0.2);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.course-content-viewer::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 70, 229, 0.4);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+@media (max-width: 1023px) {
+  .course-content-container {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .course-sidebar {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .course-sidebar button {
+    flex: 1 1 calc(33.333% - 0.5rem);
+    min-width: 140px;
+  }
+
+  .course-preview-wrapper {
+    max-height: 60vh;
+    min-height: 350px;
+  }
+}
+
+@media (max-width: 768px) {
+  .glass-card {
+    padding: 1.25rem;
+  }
+
+  .course-sidebar button {
+    flex: 1 1 calc(50% - 0.5rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .course-sidebar button {
+    flex: 1 1 100%;
   }
 }
 

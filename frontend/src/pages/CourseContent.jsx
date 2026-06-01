@@ -1080,7 +1080,7 @@ const CourseContent = () => {
   };
 
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       
       {/* Top Navigation */}
       <div className="top-nav" style={{ marginBottom: '1.5rem' }}>
@@ -1102,10 +1102,10 @@ const CourseContent = () => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '2rem', flex: 1 }}>
+      <div className="course-content-container">
         
         {/* Sidebar Tabs */}
-        <div style={{ width: '250px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div className="course-sidebar">
           {TABS.map(tab => (
             <button
               key={tab.id}
@@ -1119,7 +1119,7 @@ const CourseContent = () => {
         </div>
 
         {/* Main Content Workspace */}
-        <div className="glass-card" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div className="glass-card course-workspace">
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-light)' }}>
             <h3 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{TABS.find(t => t.id === activeTab)?.label} Generator</h3>
@@ -1197,7 +1197,7 @@ const CourseContent = () => {
             </div>
           </div>
 
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'rgba(255, 255, 255, 0.5)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)', overflow: 'hidden' }}>
+          <div className="course-preview-wrapper">
             {!content && !isGenerating ? (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
                 <Sparkles size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
@@ -1209,7 +1209,7 @@ const CourseContent = () => {
                 <p style={{ fontWeight: 500 }}>Gemini AI is generating high-quality curriculum material...</p>
               </div>
             ) : (
-              <div style={{ flex: 1, padding: '1.5rem', overflowY: 'auto', whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '1rem', color: '#1e293b' }}>
+              <div className="course-content-viewer">
                 {content}
               </div>
             )}
