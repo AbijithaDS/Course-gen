@@ -566,6 +566,29 @@ function generateDocument(payload) {
       // CIA-specific: parse questions and fill the official template
       console.log(`Generating CIA document with official template for type ${type}...`);
 
+      // Step 5 Log: Raw AI output
+      console.log("RAW OUTPUT:\n", content);
+
+      // Extract sections manually for logging to trace segmentation issues
+      const partAIdx = content.search(/Part\s*A/i);
+      const partBIdx = content.search(/Part\s*B/i);
+      const partCIdx = content.search(/Part\s*C/i);
+      let partATextLog = '';
+      let partBTextLog = '';
+      if (partAIdx !== -1) {
+        if (partBIdx !== -1) {
+          partATextLog = content.substring(partAIdx, partBIdx);
+          partBTextLog = (partCIdx !== -1) ? content.substring(partBIdx, partCIdx) : content.substring(partBIdx);
+        } else {
+          partATextLog = content.substring(partAIdx);
+        }
+      } else {
+        partATextLog = content;
+        partBTextLog = content;
+      }
+      console.log("PART A SECTION TEXT:\n", partATextLog);
+      console.log("PART B SECTION TEXT:\n", partBTextLog);
+
       // Parse individual questions from AI output
       const parsedQuestions = parseQuestions(content);
       
@@ -585,7 +608,7 @@ function generateDocument(payload) {
         console.log(`  ${k}: ${val ? `"${val.substring(0, 80)}${val.length > 80 ? '...' : ''}"` : '(empty)'}`);
       });
 
-      // Build the full placeholder map for docxtemplater
+      // Build the full placeholder map for docxtemplater (including lowercase fallbacks for absolute template safety)
       const placeholders = {
         // Metadata fields
         YEAR_SEM: resolveYearSem(year, semester),
@@ -602,25 +625,25 @@ function generateDocument(payload) {
         CO4_DESC: 'Analyze and evaluate complex problems using subject knowledge.',
         CO5_DESC: 'Design and create solutions applying higher-order thinking skills.',
 
-        // Part A questions (Q1 to Q10)
-        Q1: parsedQuestions.Q1 || '',
-        Q2: parsedQuestions.Q2 || '',
-        Q3: parsedQuestions.Q3 || '',
-        Q4: parsedQuestions.Q4 || '',
-        Q5: parsedQuestions.Q5 || '',
-        Q6: parsedQuestions.Q6 || '',
-        Q7: parsedQuestions.Q7 || '',
-        Q8: parsedQuestions.Q8 || '',
-        Q9: parsedQuestions.Q9 || '',
-        Q10: parsedQuestions.Q10 || '',
+        // Part A questions (Q1 to Q10 - supporting both case styles)
+        Q1: parsedQuestions.Q1 || '', q1: parsedQuestions.Q1 || '',
+        Q2: parsedQuestions.Q2 || '', q2: parsedQuestions.Q2 || '',
+        Q3: parsedQuestions.Q3 || '', q3: parsedQuestions.Q3 || '',
+        Q4: parsedQuestions.Q4 || '', q4: parsedQuestions.Q4 || '',
+        Q5: parsedQuestions.Q5 || '', q5: parsedQuestions.Q5 || '',
+        Q6: parsedQuestions.Q6 || '', q6: parsedQuestions.Q6 || '',
+        Q7: parsedQuestions.Q7 || '', q7: parsedQuestions.Q7 || '',
+        Q8: parsedQuestions.Q8 || '', q8: parsedQuestions.Q8 || '',
+        Q9: parsedQuestions.Q9 || '', q9: parsedQuestions.Q9 || '',
+        Q10: parsedQuestions.Q10 || '', q10: parsedQuestions.Q10 || '',
 
-        // Part B questions (Q11a to Q13b)
-        Q11a: parsedQuestions.Q11a || '',
-        Q11b: parsedQuestions.Q11b || '',
-        Q12a: parsedQuestions.Q12a || '',
-        Q12b: parsedQuestions.Q12b || '',
-        Q13a: parsedQuestions.Q13a || '',
-        Q13b: parsedQuestions.Q13b || '',
+        // Part B questions (Q11a to Q13b - supporting both case styles)
+        Q11a: parsedQuestions.Q11a || '', q11a: parsedQuestions.Q11a || '',
+        Q11b: parsedQuestions.Q11b || '', q11b: parsedQuestions.Q11b || '',
+        Q12a: parsedQuestions.Q12a || '', q12a: parsedQuestions.Q12a || '',
+        Q12b: parsedQuestions.Q12b || '', q12b: parsedQuestions.Q12b || '',
+        Q13a: parsedQuestions.Q13a || '', q13a: parsedQuestions.Q13a || '',
+        Q13b: parsedQuestions.Q13b || '', q13b: parsedQuestions.Q13b || '',
       };
 
       // Load the official template
@@ -631,6 +654,10 @@ function generateDocument(payload) {
           paragraphLoop: true,
           linebreaks: true,
         });
+
+        // Step 2 Log: complete object being passed to docxtemplater
+        console.log("TEMPLATE DATA PASSED TO DOCXTEMPLATER:");
+        console.log(JSON.stringify(placeholders, null, 2));
 
         doc.render(placeholders);
 
