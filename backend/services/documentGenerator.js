@@ -128,14 +128,32 @@ function parseQuestions(content) {
 
   // --- Parse Part B ---
   const findQuestionSegment = (text, num) => {
-    const startRegex = new RegExp(`(?:^|\\n)\\s*\\**\\s*(?:Question|Q|\\*\\*)?\\s*${num}(?:\\b|[a-z])`, 'i');
-    const startMatch = text.match(startRegex);
+    // Try multiple patterns to locate the start of question `num`
+    const startPatterns = [
+      // **11. (16 Marks)** or **11.** or 11. or Q11 etc.
+      new RegExp(`(?:^|\\n)\\s*\\**\\s*(?:Question|Q|\\*\\*)?\\s*${num}\\s*[\\.\\):\\(]`, 'i'),
+      // Fallback: just the number at line start followed by word boundary or letter
+      new RegExp(`(?:^|\\n)\\s*\\**\\s*(?:Question|Q|\\*\\*)?\\s*${num}(?:\\b|[a-z])`, 'i')
+    ];
+    
+    let startMatch = null;
+    for (const pat of startPatterns) {
+      startMatch = text.match(pat);
+      if (startMatch) break;
+    }
     if (!startMatch) return '';
 
-    const startIdx = startMatch.index + startMatch[0].length;
     const nextNum = num + 1;
-    const endRegex = new RegExp(`(?:^|\\n)\\s*\\**\\s*(?:Question|Q|\\*\\*)?\\s*${nextNum}(?:\\b|[a-z])`, 'i');
-    const endMatch = text.match(endRegex);
+    const endPatterns = [
+      new RegExp(`(?:^|\\n)\\s*\\**\\s*(?:Question|Q|\\*\\*)?\\s*${nextNum}\\s*[\\.\\):\\(]`, 'i'),
+      new RegExp(`(?:^|\\n)\\s*\\**\\s*(?:Question|Q|\\*\\*)?\\s*${nextNum}(?:\\b|[a-z])`, 'i')
+    ];
+    
+    let endMatch = null;
+    for (const pat of endPatterns) {
+      endMatch = text.match(pat);
+      if (endMatch) break;
+    }
 
     if (endMatch) {
       return text.substring(startMatch.index, endMatch.index);
@@ -145,8 +163,15 @@ function parseQuestions(content) {
   };
 
   const parseOption = (segment, letter) => {
+    // Multiple regex patterns to handle various AI formatting styles:
+    // "a. text", "a) text", "(a) text", "11a. text", "  a. text", etc.
     const patterns = [
-      new RegExp(`(?:\\b|\\()\\s*(?:\\d+)?${letter}\\s*[\\.\\):]\\s*\\*?\\*?\\s*([\\s\\S]+?)(?=(?:\\b|\\()\\s*(?:\\d+)?[a-b]\\s*[\\.\\):]|\\bOR\\b|$)`, 'i')
+      // Pattern 1: Standard "a." / "a)" / "a:" with optional preceding number
+      new RegExp(`(?:\\b|\\()\\s*(?:\\d+)?${letter}\\s*[\\.\\):]\\s*\\*?\\*?\\s*([\\s\\S]+?)(?=(?:\\b|\\()\\s*(?:\\d+)?[a-b]\\s*[\\.\\):]|\\bOR\\b|$)`, 'i'),
+      // Pattern 2: Parenthesized "(a)" style
+      new RegExp(`\\(${letter}\\)\\s*\\*?\\*?\\s*([\\s\\S]+?)(?=\\([a-b]\\)|\\bOR\\b|$)`, 'i'),
+      // Pattern 3: Indented letter with dot/paren, more lenient
+      new RegExp(`^\\s+${letter}\\s*[\\.\\)]\\s*(.+)`, 'im')
     ];
 
     for (const pat of patterns) {
@@ -160,6 +185,23 @@ function parseQuestions(content) {
     return '';
   };
 
+  /**
+   * Extracts the full question text from a segment when no a/b sub-options exist.
+   * Strips the leading question number, marks info, and formatting cruft.
+   */
+  const extractFullQuestionText = (segment) => {
+    if (!segment) return '';
+    let text = segment
+      // Remove the leading question number line (e.g., "**11. (16 Marks)**" or "11.")
+      .replace(/^\s*\**\s*(?:Question|Q)?\s*\d+\s*[\.\)\:]?\s*(?:\(?\d+\s*Marks?\)?)?\.?\s*\**\s*/i, '')
+      // Remove OR markers
+      .replace(/\bOR\b/gi, '')
+      // Remove marks/instruction lines
+      .replace(/^\s*\*?\(?\s*\d+\s*(?:x\s*\d+\s*=\s*)?\d*\s*Marks?\s*\)?\s*\*?\s*$/gim, '')
+      .trim();
+    return cleanOption(text);
+  };
+
   const partBKeys = [
     { key: '11a', num: 11, letter: 'a' },
     { key: '11b', num: 11, letter: 'b' },
@@ -169,10 +211,105 @@ function parseQuestions(content) {
     { key: '13b', num: 13, letter: 'b' }
   ];
 
-  for (const item of partBKeys) {
-    const segment = findQuestionSegment(partBText, item.num);
-    if (segment) {
-      questions[`Q${item.key}`] = parseOption(segment, item.letter);
+  // Group by question number for fallback handling
+  const questionNums = [11, 12, 13];
+  let anyPartBFound = false;
+
+  for (const num of questionNums) {
+    const segment = findQuestionSegment(partBText, num);
+    if (!segment) continue;
+    anyPartBFound = true;
+
+    const aKey = `Q${num}a`;
+    const bKey = `Q${num}b`;
+    
+    const optA = parseOption(segment, 'a');
+    const optB = parseOption(segment, 'b');
+
+    if (optA || optB) {
+      // Standard a/b sub-options found
+      questions[aKey] = optA;
+      questions[bKey] = optB;
+    } else {
+      // FALLBACK: No a/b sub-options detected — AI output the question as a single block.
+      // Place the entire question text into the 'a' slot so it appears in the DOCX.
+      const fullText = extractFullQuestionText(segment);
+      if (fullText) {
+        questions[aKey] = fullText;
+        questions[bKey] = ''; // Leave 'b' empty — only one question variant was generated
+      }
+    }
+  }
+
+  // SECONDARY FALLBACK: If no Q11/Q12/Q13 numbering was found at all,
+  // the AI may have used relative numbering (e.g., "Question 1:", "Question 2:") 
+  // inside the Part B section. Re-try with relative numbers mapped to 11, 12, 13.
+  if (!anyPartBFound && partBText) {
+    const targetNums = [11, 12, 13];
+
+    // First, try to find "Question N:" labeled segments (preferred — more specific)
+    const findLabeledSegment = (text, num) => {
+      const startRegex = new RegExp(`(?:^|\\n)\\s*\\**\\s*Question\\s+${num}\\s*[:\\.]?\\s*\\**`, 'i');
+      const startMatch = text.match(startRegex);
+      if (!startMatch) return '';
+
+      const nextNum = num + 1;
+      const endRegex = new RegExp(`(?:^|\\n)\\s*\\**\\s*Question\\s+${nextNum}\\s*[:\\.]?\\s*\\**`, 'i');
+      const endMatch = text.match(endRegex);
+
+      if (endMatch) {
+        return text.substring(startMatch.index, endMatch.index);
+      }
+      return text.substring(startMatch.index);
+    };
+
+    let labeledFound = false;
+    for (let i = 0; i < 3; i++) {
+      const segment = findLabeledSegment(partBText, i + 1);
+      if (!segment) continue;
+      labeledFound = true;
+
+      const aKey = `Q${targetNums[i]}a`;
+      const bKey = `Q${targetNums[i]}b`;
+
+      const optA = parseOption(segment, 'a');
+      const optB = parseOption(segment, 'b');
+
+      if (optA || optB) {
+        questions[aKey] = optA;
+        questions[bKey] = optB;
+      } else {
+        const fullText = extractFullQuestionText(segment);
+        if (fullText) {
+          questions[aKey] = fullText;
+          questions[bKey] = '';
+        }
+      }
+    }
+
+    // If labeled "Question N" segments weren't found, fall back to bare numbers 1, 2, 3
+    if (!labeledFound) {
+      for (let i = 0; i < 3; i++) {
+        const segment = findQuestionSegment(partBText, i + 1);
+        if (!segment) continue;
+
+        const aKey = `Q${targetNums[i]}a`;
+        const bKey = `Q${targetNums[i]}b`;
+
+        const optA = parseOption(segment, 'a');
+        const optB = parseOption(segment, 'b');
+
+        if (optA || optB) {
+          questions[aKey] = optA;
+          questions[bKey] = optB;
+        } else {
+          const fullText = extractFullQuestionText(segment);
+          if (fullText) {
+            questions[aKey] = fullText;
+            questions[bKey] = '';
+          }
+        }
+      }
     }
   }
 
@@ -425,7 +562,22 @@ function generateDocument(payload) {
 
       // Parse individual questions from AI output
       const parsedQuestions = parseQuestions(content);
-      console.log(`Parsed questions: ${Object.keys(parsedQuestions).join(', ')}`);
+      
+      // Debug logging for CIA export pipeline tracing
+      const partAKeys = ['Q1','Q2','Q3','Q4','Q5','Q6','Q7','Q8','Q9','Q10'];
+      const partBKeys = ['Q11a','Q11b','Q12a','Q12b','Q13a','Q13b'];
+      const filledA = partAKeys.filter(k => parsedQuestions[k] && parsedQuestions[k].trim());
+      const filledB = partBKeys.filter(k => parsedQuestions[k] && parsedQuestions[k].trim());
+      const emptyB = partBKeys.filter(k => !parsedQuestions[k] || !parsedQuestions[k].trim());
+      
+      console.log(`[CIA Export] Parsed: Part A = ${filledA.length}/10, Part B = ${filledB.length}/6`);
+      if (emptyB.length > 0) {
+        console.warn(`[CIA Export] ⚠ Empty Part B fields: ${emptyB.join(', ')}`);
+      }
+      partBKeys.forEach(k => {
+        const val = parsedQuestions[k];
+        console.log(`  ${k}: ${val ? `"${val.substring(0, 80)}${val.length > 80 ? '...' : ''}"` : '(empty)'}`);
+      });
 
       // Build the full placeholder map for docxtemplater
       const placeholders = {
