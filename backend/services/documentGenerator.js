@@ -128,13 +128,13 @@ function parseQuestions(content) {
 
   // --- Parse Part B ---
   const findQuestionSegment = (text, num) => {
-    const startRegex = new RegExp(`(?:^|\\n)\\s*\\**\\s*(?:Question|Q|\\*\\*)?\\s*${num}\\b`, 'i');
+    const startRegex = new RegExp(`(?:^|\\n)\\s*\\**\\s*(?:Question|Q|\\*\\*)?\\s*${num}(?:\\b|[a-z])`, 'i');
     const startMatch = text.match(startRegex);
     if (!startMatch) return '';
 
     const startIdx = startMatch.index + startMatch[0].length;
     const nextNum = num + 1;
-    const endRegex = new RegExp(`(?:^|\\n)\\s*\\**\\s*(?:Question|Q|\\*\\*)?\\s*${nextNum}\\b`, 'i');
+    const endRegex = new RegExp(`(?:^|\\n)\\s*\\**\\s*(?:Question|Q|\\*\\*)?\\s*${nextNum}(?:\\b|[a-z])`, 'i');
     const endMatch = text.match(endRegex);
 
     if (endMatch) {
